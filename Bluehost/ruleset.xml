@@ -2,7 +2,15 @@
 <ruleset name="Bluehost">
     <description>The Bluehost PHP Code Sniffer standard.</description>
 
-    <config name="installed_paths" value="../../phpcompatibility/php-compatibility,../../wp-coding-standards/wpcs"/>
+    <arg name="colors"/>
+
+    <config name="testVersion" value="5.6-"/>
+
+    <!-- Sets the minimum supported WP version to 5.2, which requires PHP 5.6. -->
+    <config name="minimum_supported_wp_version" value="5.2"/>
+
+    <!-- For CI, don't fail on warnings -->
+    <config name="ignore_warnings_on_exit" value="1"/>
 
     <exclude-pattern>*/phpunit.xml*</exclude-pattern>
     <exclude-pattern>*/languages/*</exclude-pattern>
@@ -32,12 +40,11 @@
         <severity>0</severity>
     </rule>
 
-    <!-- For CI, don't fail on warnings -->
-    <config name="ignore_warnings_on_exit" value="1"/>
-
-    <!-- Enforce doc standards -->
     <rule ref="WordPress-Docs">
-        <!-- Don't worry about capitolizing long lines -->
+        <!-- Don't worry about page comment blocks -->
+        <exclude name="Squiz.Commenting.FileComment.Missing"/>
+
+        <!-- Don't worry about capitalizing long lines -->
         <exclude name="Generic.Commenting.DocComment.LongNotCapital"/>
     </rule>
 
@@ -58,9 +65,6 @@
         <exclude name="Squiz.Commenting.FunctionComment.ParamCommentFullStop"/>
     </rule>
 
-    <!-- Sets the minimum supported WP version to 4.7, which is over a year old. -->
-    <config name="minimum_supported_wp_version" value="4.7"/>
-
     <!-- Make missing translator comment a warning. -->
     <rule ref="WordPress.WP.I18n.MissingTranslatorsComment">
         <type>warning</type>
@@ -72,5 +76,6 @@
     </rule>
 
     <!-- Loads the PHP Compatibility ruleset. -->
-    <rule ref="PHPCompatibility"/>
+    <rule ref="PHPCompatibilityWP"/>
+
 </ruleset>
