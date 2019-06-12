@@ -4,6 +4,17 @@ PHP Code Sniffer Standards for Bluehost WordPress projects.
 
 ## Installation
 
+Add this Satis repository to your `composer.json` file:
+
+```json
+"repositories": [
+    {
+      "type": "composer",
+      "url": "https://satis.wpteamhub.com"
+    }
+  ],
+```
+
 Run `composer require bluehost/wp-php-standards` from your project root.
 
 ## Usage
