@@ -6,22 +6,38 @@ PHP Code Sniffer Standards for Bluehost WordPress projects.
 
 Run `composer require bluehost/wp-php-standards` from your project root.
 
-Add any extra PHP Code Sniffer configuration options to your composer.json file as follows and then run `composer install`:
+## Usage
+
+Run `vendor/bin/phpcs . --standard=Bluehost` from your project root to check your code.
+
+Optionally, add a script to your `composer.json` file so you can just run `composer run lint` to check your code.
 
 ```json
-    "extra": {
-        "phpcs-config": {
-            "default_standard": "Bluehost",
-            "testVersion": "5.2-"
-        }
+    "scripts": {
+        "lint": [
+          "vendor/bin/phpcs . --standard=Bluehost"
+        ]
     }
 ```
 
-## Usage
+## Additional Notes
+- Append the `-s` flag to see the internal names of the rules.
+- Add `--runtime-set testVersion 5.2-` to check PHP version 5.2 or greater.
+- Add a custom `phpcs.xml` file to your project to customize the ruleset or your desired configuration.
 
-Run `vendor/bin/phpcs .` from the project root to run checks.
+```xml
+<?xml version="1.0"?>
+<ruleset name="Project Rules">
+  <rule ref="Bluehost" />
+  <config name="testVersion" value="5.2-"/>
+  <config name="minimum_supported_wp_version" value="4.7"/>
+</ruleset>
+```
 
-See the [PHP Code Sniffer wiki](https://github.com/squizlabs/PHP_CodeSniffer/wiki) for more details.
+### Additional Documentation
+- https://github.com/squizlabs/PHP_CodeSniffer
+- https://github.com/PHPCompatibility/PHPCompatibilityWP
+- https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards
 
 ## IDE Integration
 Some IDE integrations of PHPCS  will fail to register your ruleset since it doesn't live in your project root. In order to rectify this, place phpcs.xml at your project root:
