@@ -11,8 +11,8 @@
   ],
   "require": {
     "squizlabs/php_codesniffer": "@stable",
-    "phpcompatibility/php-compatibility": "@stable",
     "wp-coding-standards/wpcs": "@stable",
-    "wpscholar/phpcs-standards-installer": "@stable"
+    "phpcompatibility/phpcompatibility-wp": "@stable",
+    "dealerdirect/phpcodesniffer-composer-installer": "@stable"
   }
 }
