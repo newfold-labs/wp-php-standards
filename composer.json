@@ -1,7 +1,7 @@
 {
   "name": "bluehost/wp-php-standards",
   "description": "PHP Code Sniffer Standards for Bluehost WordPress projects.",
-  "type": "phpcs-standards",
+  "type": "phpcodesniffer-standard",
   "license": "GPL-2.0-or-later",
   "authors": [
     {
