@@ -27,6 +27,9 @@ Optionally, add a script to your `composer.json` file so you can just run `compo
     "scripts": {
         "lint": [
           "vendor/bin/phpcs . --standard=Bluehost"
+        ],
+	"clean": [
+            "vendor/bin/phpcbf . --standard=Bluehost"
         ]
     }
 ```
