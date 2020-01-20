@@ -77,5 +77,8 @@
 
     <!-- Loads the PHP Compatibility ruleset. -->
     <rule ref="PHPCompatibilityWP"/>
+    
+    <!-- Throws Warnings for TODO comments in PHP and JS -->
+    <rule ref="Generic.Commenting.Todo"/>
 
 </ruleset>
