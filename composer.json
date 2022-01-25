@@ -14,5 +14,10 @@
     "wp-coding-standards/wpcs": "@stable",
     "phpcompatibility/phpcompatibility-wp": "@stable",
     "dealerdirect/phpcodesniffer-composer-installer": "@stable"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   }
 }
