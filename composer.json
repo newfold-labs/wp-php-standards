@@ -9,7 +9,7 @@
       "email": "micah@wpscholar.com"
     }
   ],
-  "require": {
+  "require-dev": {
     "squizlabs/php_codesniffer": "@stable",
     "wp-coding-standards/wpcs": "@stable",
     "phpcompatibility/phpcompatibility-wp": "@stable",
