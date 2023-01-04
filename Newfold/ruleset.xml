@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="Bluehost">
-    <description>The Bluehost PHP Code Sniffer standard.</description>
+<ruleset name="Newfold">
+    <description>The Newfold PHP Code Sniffer standard.</description>
 
     <arg name="colors"/>
 
