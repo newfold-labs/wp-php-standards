@@ -10,12 +10,12 @@ Add this Satis repository to your `composer.json` file:
 "repositories": [
     {
       "type": "composer",
-      "url": "https://bluehost.github.io/satis/"
+      "url": "https://newfold-labs.github.io/satis/"
     }
   ],
 ```
 
-Run `composer require bluehost/wp-php-standards` from your project root.
+Run `composer require newfold-labs/wp-php-standards` from your project root.
 
 ## Usage
 
