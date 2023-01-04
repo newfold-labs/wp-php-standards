@@ -1,6 +1,6 @@
 # WordPress PHP Standards
 
-PHP Code Sniffer Standards for Bluehost WordPress projects.
+PHP Code Sniffer Standards for Newfold WordPress projects.
 
 ## Installation
 
@@ -19,17 +19,17 @@ Run `composer require newfold-labs/wp-php-standards` from your project root.
 
 ## Usage
 
-Run `vendor/bin/phpcs . --standard=Bluehost` from your project root to check your code.
+Run `vendor/bin/phpcs . --standard=Newfold` from your project root to check your code.
 
 Optionally, add a script to your `composer.json` file so you can just run `composer run lint` to check your code.
 
 ```json
     "scripts": {
         "lint": [
-          "vendor/bin/phpcs . --standard=Bluehost"
+          "vendor/bin/phpcs . --standard=Newfold"
         ],
 	"clean": [
-            "vendor/bin/phpcbf . --standard=Bluehost"
+            "vendor/bin/phpcbf . --standard=Newfold"
         ]
     }
 ```
@@ -42,7 +42,7 @@ Optionally, add a script to your `composer.json` file so you can just run `compo
 ```xml
 <?xml version="1.0"?>
 <ruleset name="Project Rules">
-  <rule ref="Bluehost" />
+  <rule ref="Newfold" />
   <config name="testVersion" value="5.2-"/>
   <config name="minimum_supported_wp_version" value="4.7"/>
 </ruleset>
@@ -59,7 +59,7 @@ Some IDE integrations of PHPCS  will fail to register your ruleset since it does
 ```xml
 <?xml version="1.0"?>
 <ruleset name="Project Rules">
-	<rule ref="Bluehost" />
+	<rule ref="Newfold" />
 </ruleset>
 ```
 
@@ -73,5 +73,5 @@ Some IDE integrations of PHPCS  will fail to register your ruleset since it does
 6. Go to "Editor" > "Inspections" in the preference panel.
 7. Click on "PHP Code Sniffer validation" under the "PHP" > "Quality tools" section.
 8. Hit the refresh button next to the "Coding Standard" field on the right.
-9. Select "Bluehost" from the dropdown.
+9. Select "Newfold" from the dropdown.
 10. Hit "OK" to exit the preferences panel.
