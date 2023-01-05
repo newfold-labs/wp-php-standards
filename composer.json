@@ -1,6 +1,6 @@
 {
   "name": "newfold-labs/wp-php-standards",
-  "description": "PHP Code Sniffer Standards for Bluehost WordPress projects.",
+  "description": "PHP Code Sniffer Standards for Newfold WordPress projects.",
   "type": "phpcodesniffer-standard",
   "license": "GPL-2.0-or-later",
   "authors": [
@@ -9,7 +9,7 @@
       "email": "micah@wpscholar.com"
     }
   ],
-  "require": {
+  "require-dev": {
     "squizlabs/php_codesniffer": "@stable",
     "wp-coding-standards/wpcs": "@stable",
     "phpcompatibility/phpcompatibility-wp": "@stable",
