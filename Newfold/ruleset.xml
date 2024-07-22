@@ -15,7 +15,10 @@
 
     <exclude-pattern>*/phpunit.xml*</exclude-pattern>
     <exclude-pattern>*/languages/*</exclude-pattern>
-    <exclude-pattern>*/tests/*</exclude-pattern>
+
+    <exclude-pattern>*/tests/_data/*</exclude-pattern>
+    <exclude-pattern>*/tests/_output/*</exclude-pattern>
+    <exclude-pattern>*/tests/_support/*</exclude-pattern>
 
     <!-- Third-party code -->
     <exclude-pattern>*/bower-components/*</exclude-pattern>
