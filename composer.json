@@ -9,6 +9,11 @@
       "email": "micah@wpscholar.com"
     }
   ],
+  "autoload": {
+    "psr-4": {
+      "Newfold\\Sniffs\\": "Newfold/Sniffs/"
+    }
+  },
   "require": {
     "squizlabs/php_codesniffer": "@stable",
     "wp-coding-standards/wpcs": "@stable",
