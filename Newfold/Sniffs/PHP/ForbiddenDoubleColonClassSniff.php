@@ -4,6 +4,7 @@ namespace Newfold\Sniffs\PHP;
 
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
+use Newfold\Sniffs\PHP\Helpers\PHPCompatibilityHelper;
 
 /**
  * Sniff to detect invalid "::class::" usage.
@@ -28,6 +29,11 @@ class ForbiddenDoubleColonClassSniff implements Sniff {
 	 * @return void
 	 */
 	public function process( File $phpcs_file, $stack_ptr ) {
+		// Do not run this if the minimum test version is PHP 8 or higher.
+		if ( PHPCompatibilityHelper::is_min_test_version_php_8_or_newer() ) {
+			return;
+		}
+
 		$tokens     = $phpcs_file->getTokens();
 		$prev_token = $tokens[ $stack_ptr - 1 ] ?? null;
 		$next_token = $tokens[ $stack_ptr + 1 ] ?? null;
