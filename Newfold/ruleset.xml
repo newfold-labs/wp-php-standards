@@ -92,4 +92,7 @@
     <!-- Custom Newfold sniff to detect invalid "::class::" usage in PHP versions below 8 -->
     <rule ref="Newfold.PHP.ForbiddenDoubleColonClass"/>
 
+    <!-- Custom Newfold sniff to detect PHP 8 union type syntax (e.g. array|\WP_Error) when targeting PHP 7 -->
+    <rule ref="Newfold.PHP.ForbiddenUnionType"/>
+
 </ruleset>

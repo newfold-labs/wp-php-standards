@@ -10,6 +10,13 @@ use PHP_CodeSniffer\Config;
 class PHPCompatibilityHelper {
 
 	/**
+	 * Cached result of is_min_test_version_php_8_or_newer().
+	 *
+	 * @var bool|null
+	 */
+	private static $cached_min_version_result = null;
+
+	/**
 	 * Determines if PHP 8 or newer is included in the minimum testVersion setting.
 	 *
 	 * This function extracts the PHP version range from the testVersion configuration
@@ -26,18 +33,21 @@ class PHPCompatibilityHelper {
 	 * @return bool True if `minVersion` is PHP 8 or newer, false otherwise.
 	 */
 	public static function is_min_test_version_php_8_or_newer() {
+		if ( null !== self::$cached_min_version_result ) {
+			return self::$cached_min_version_result;
+		}
+
 		// Retrieve testVersion from config.
 		$test_version = Config::getConfigData( 'testVersion' ) ?? '';
 		if ( empty( $test_version ) ) {
+			self::$cached_min_version_result = false;
 			return false;
 		}
 
 		$versions    = explode( '-', $test_version );
 		$min_version = isset( $versions[0] ) ? (float) $versions[0] : null;
-		if ( null !== $min_version && 8.0 <= $min_version ) {
-			return true;
-		}
 
-		return false;
+		self::$cached_min_version_result = ( null !== $min_version && 8.0 <= $min_version );
+		return self::$cached_min_version_result;
 	}
 }
