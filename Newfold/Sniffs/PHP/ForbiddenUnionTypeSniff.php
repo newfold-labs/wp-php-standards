@@ -20,8 +20,8 @@ use PHPCSUtils\Utils\Variables;
  * Sniff to detect PHP 8.0 union type syntax (e.g. "array|\WP_Error") in type declarations.
  *
  * Union types are a parse error on PHP 7.x, so they take the whole file down rather
- * than failing at the call site. Use docblocks for union types when targeting PHP 7:
- * @param and @return on a function, @var on a property or constant.
+ * than failing at the call site. Use docblocks for union types when targeting PHP 7,
+ * tagging functions with param and return, and properties and constants with var.
  */
 class ForbiddenUnionTypeSniff implements Sniff {
 
