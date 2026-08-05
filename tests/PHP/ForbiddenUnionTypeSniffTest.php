@@ -108,6 +108,23 @@ class ForbiddenUnionTypeSniffTest extends SniffTestCase {
 	}
 
 	/**
+	 * A promoted constructor property reports once, not once per role.
+	 *
+	 * Constructor property promotion declares a parameter and a property from a
+	 * single piece of syntax, and the sniff visits both parameter lists and
+	 * property declarations. Counting the reports rather than only the lines is
+	 * the point of this test.
+	 *
+	 * @return void
+	 */
+	public function test_reports_promoted_constructor_property_once() {
+		$errors = $this->get_errors( 'union-type-promoted-property.inc' );
+
+		$this->assertSame( array( 9 ), array_keys( $errors ) );
+		$this->assertCount( 1, $errors[9], 'A promoted property must not be reported twice.' );
+	}
+
+	/**
 	 * The sniff stands down when the target is PHP 8 or newer.
 	 *
 	 * @return void
