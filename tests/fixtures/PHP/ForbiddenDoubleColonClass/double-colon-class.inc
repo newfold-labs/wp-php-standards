@@ -26,3 +26,8 @@ $i = self::class;
 // Violations. The chained "::" is the problem, whatever follows it.
 $j = Thing::class::$prop;
 $k = Thing::class::{$name};
+
+// Violations. Comments sit in the token stream just like whitespace.
+$l = Thing::class/* inline */::FOO;
+$m = Thing::class // trailing
+	::FOO;

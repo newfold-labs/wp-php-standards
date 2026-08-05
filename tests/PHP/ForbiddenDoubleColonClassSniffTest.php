@@ -35,9 +35,26 @@ class ForbiddenDoubleColonClassSniffTest extends SniffTestCase {
 	 */
 	public function test_reports_chained_double_colon() {
 		$this->assertErrorsOnLines(
-			array( 10, 11, 14, 17, 27, 28 ),
+			array( 10, 11, 14, 17, 27, 28, 31, 33 ),
 			'double-colon-class.inc'
 		);
+	}
+
+	/**
+	 * A comment between the two operators does not hide the construct.
+	 *
+	 * Comments occupy the token stream the same way whitespace does, so reading
+	 * through empty tokens covers both. Line 31 has an inline comment between the
+	 * operators. Line 32 ends with a trailing comment and the second operator
+	 * lands on line 33, which is where the report belongs.
+	 *
+	 * @return void
+	 */
+	public function test_reports_across_comments_between_operators() {
+		$errors = $this->get_errors( 'double-colon-class.inc' );
+
+		$this->assertArrayHasKey( 31, $errors, 'An inline comment between the operators is still a chain.' );
+		$this->assertArrayHasKey( 33, $errors, 'A trailing comment between the operators is still a chain.' );
 	}
 
 	/**
