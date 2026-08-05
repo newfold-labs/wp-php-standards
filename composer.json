@@ -30,7 +30,9 @@
     "phpunit/phpunit": "^9.6"
   },
   "scripts": {
-    "test": "phpunit"
+    "test": "phpunit",
+    "lint": "phpcs",
+    "fix": "phpcbf"
   },
   "config": {
     "allow-plugins": {

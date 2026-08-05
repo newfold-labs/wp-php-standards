@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format follows
 
 ## Unreleased
 
+### Fixed
+
+- `Newfold.PHP.ForbiddenUnionType` now reports union types it used to walk past.
+  It only visited pipes reachable from a parameter list or a return type, and its
+  list of type tokens had no entry for `self`, `static` or `parent`. Property
+  types, relative type names, disjunctive normal form types such as
+  `(A&B)|null`, and unions on typed class constants all went unreported. Every
+  one of them is a parse error on PHP 7, so the file would fatal rather than fail
+  at the call site.
+
+  This is a breaking change. Code that passed before can fail now.
+
 ### Changed
 
 - Pinned every dependency to an explicit range. All four were `@stable`, which
