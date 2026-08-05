@@ -1,0 +1,91 @@
+# Changelog
+
+All notable changes to this project are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
+[semantic versioning](#versioning).
+
+## Unreleased
+
+### Changed
+
+- Pinned every dependency to an explicit range. All four were `@stable`, which
+  accepts any future major. A new PHP_CodeSniffer, WPCS or PHPCompatibility major
+  would have landed in every consumer's CI on the next `composer update` with no
+  deprecation window. The pins resolve to the same versions as before, so this is
+  no change in behaviour today.
+
+### Added
+
+- `phpcsstandards/phpcsutils` as an explicit dependency. It was already installed
+  transitively through WPCS; the custom sniffs are moving onto it, so it is a
+  direct dependency now.
+- This changelog, and a documented versioning policy in the readme.
+
+## 1.2.6 - 2026-05-11
+
+### Added
+
+- `Newfold.PHP.ForbiddenUnionType`, which flags PHP 8 union type declarations
+  when the configured `testVersion` includes PHP 7.
+
+### Changed
+
+- `PHPCompatibilityHelper::is_min_test_version_php_8_or_newer()` caches its
+  result instead of re-parsing `testVersion` on every token.
+
+## 1.2.5 - 2025-03-19
+
+### Added
+
+- `Newfold.PHP.ForbiddenDoubleColonClass`, which flags `::class::` usage that
+  does not parse on PHP 7.
+- `PHPCompatibilityHelper`, so sniffs can skip themselves when `testVersion`
+  starts at PHP 8 or newer.
+
+## 1.2.4 - 2024-07-22
+
+### Changed
+
+- Test directories are no longer excluded from the scan.
+
+## 1.2.3 - 2024-04-22
+
+### Changed
+
+- `testVersion` default raised to `7.3-`.
+
+## 1.2.2 - 2023-01-06
+
+### Changed
+
+- Dependencies moved from `require-dev` to `require`, so consuming projects get
+  the sniffs they need without extra setup.
+
+## 1.2.1 - 2023-01-05
+
+### Changed
+
+- Ruleset renamed to `Newfold`, which is the name consumers pass to
+  `--standard`.
+
+## 1.2 - 2023-01-04
+
+### Added
+
+- Initial release under the `newfold-labs` organisation, published through the
+  Satis index.
+
+## Versioning
+
+The version number describes what a consumer has to do to upgrade.
+
+- **Major**: code that passed before can fail now. A new sniff, a rule promoted
+  from warning to error, or a stricter default all land here.
+- **Minor**: new capability that does not fail existing code. A new sniff that
+  ships disabled, or a dependency range widening.
+- **Patch**: fixes that do not change which code passes, such as a false positive
+  being removed or a message being reworded.
+
+Fixing a sniff that was missing violations is a major bump. The sniff is more
+correct, but a repository that passed yesterday can fail today, and that is what
+the version number needs to warn about.

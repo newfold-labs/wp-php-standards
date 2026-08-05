@@ -15,7 +15,39 @@ Add this Satis repository to your `composer.json` file:
 ],
 ```
 
-Run `composer require newfold-labs/wp-php-standards` from your project root.
+Scope the repository to this organisation so it is only consulted for our own
+packages:
+
+```json
+"repositories": [
+  {
+    "type": "composer",
+    "url": "https://newfold-labs.github.io/satis/",
+    "only": ["newfold-labs/*"]
+  }
+],
+```
+
+Run `composer require --dev newfold-labs/wp-php-standards` from your project
+root.
+
+The `dealerdirect/phpcodesniffer-composer-installer` plugin registers the
+standard with PHPCS on install, so it has to be allowed:
+
+```json
+"config": {
+  "allow-plugins": {
+    "dealerdirect/phpcodesniffer-composer-installer": true
+  }
+}
+```
+
+## Versioning
+
+Releases follow semantic versioning, with the major reserved for changes that can
+turn a passing repository red. Pin to a caret range (`^1.2.6`) rather than
+`@stable` so a major lands when you choose to take it. See
+[CHANGELOG.md](CHANGELOG.md) for the full policy and release history.
 
 ## Usage
 
