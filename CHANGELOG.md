@@ -8,6 +8,15 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- `Newfold.PHP.ForbiddenDoubleColonClass` now reports chained `::class::` fetches
+  it used to walk past: `Thing::CLASS::FOO`, since PHP accepts any casing of the
+  keyword; `Thing::class ::FOO`, since whitespace between the operators is legal;
+  and `Thing::class::$prop` and `Thing::class::{$name}`, which the sniff skipped
+  because it insisted on a plain name after the second operator. All four parse
+  only on PHP 8.3 and up.
+
+  This is a breaking change. Code that passed before can fail now.
+
 - `Newfold.PHP.ForbiddenUnionType` now reports union types it used to walk past.
   It only visited pipes reachable from a parameter list or a return type, and its
   list of type tokens had no entry for `self`, `static` or `parent`. Property

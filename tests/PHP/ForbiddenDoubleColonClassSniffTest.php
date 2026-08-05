@@ -35,42 +35,42 @@ class ForbiddenDoubleColonClassSniffTest extends SniffTestCase {
 	 */
 	public function test_reports_chained_double_colon() {
 		$this->assertErrorsOnLines(
-			array( 10, 11 ),
+			array( 10, 11, 14, 17, 27, 28 ),
 			'double-colon-class.inc'
 		);
 	}
 
 	/**
-	 * An uppercase "::CLASS" is missed today.
+	 * Casing and spacing do not hide the construct.
 	 *
-	 * PHP treats "::CLASS" and "::class" identically, so line 14 is the same
-	 * violation as line 10. The sniff compares the token content case
-	 * sensitively and walks past it.
+	 * PHP treats "::CLASS" and "::class" identically, and whitespace between the
+	 * two operators is legal, so lines 14 and 17 are the same violation as line
+	 * 10. Both were missed while the sniff compared token content case
+	 * sensitively and read the raw neighbouring token.
 	 *
 	 * @return void
 	 */
-	public function test_uppercase_class_keyword_is_not_reported_yet() {
-		$this->assertArrayNotHasKey(
-			14,
-			$this->get_errors( 'double-colon-class.inc' ),
-			'Line 14 now reports. Move it into the expected set in test_reports_chained_double_colon().'
-		);
+	public function test_reports_regardless_of_casing_and_spacing() {
+		$errors = $this->get_errors( 'double-colon-class.inc' );
+
+		$this->assertArrayHasKey( 14, $errors, 'Thing::CLASS::FOO is the same construct as Thing::class::FOO.' );
+		$this->assertArrayHasKey( 17, $errors, 'Whitespace before the second "::" is legal PHP.' );
 	}
 
 	/**
-	 * Whitespace before the second "::" is missed today.
+	 * The chain reports whatever follows the second operator.
 	 *
-	 * The sniff reads the raw neighbouring token rather than the next non-empty
-	 * one, so a space breaks detection on line 17.
+	 * Line 27 fetches a static property and line 28 uses a "{$expr}" fetch. Both
+	 * parse only on PHP 8.3 and up. The sniff used to require a plain name after
+	 * the second operator, which let both through.
 	 *
 	 * @return void
 	 */
-	public function test_whitespace_before_second_double_colon_is_not_reported_yet() {
-		$this->assertArrayNotHasKey(
-			17,
-			$this->get_errors( 'double-colon-class.inc' ),
-			'Line 17 now reports. Move it into the expected set in test_reports_chained_double_colon().'
-		);
+	public function test_reports_non_name_fetches_after_the_chain() {
+		$errors = $this->get_errors( 'double-colon-class.inc' );
+
+		$this->assertArrayHasKey( 27, $errors, 'Thing::class::$prop parses only on PHP 8.3 and up.' );
+		$this->assertArrayHasKey( 28, $errors, 'Thing::class::{$name} parses only on PHP 8.3 and up.' );
 	}
 
 	/**

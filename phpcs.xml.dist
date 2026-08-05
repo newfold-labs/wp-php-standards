@@ -12,4 +12,17 @@
 		linting them reports the violations the tests exist to assert on.
 	-->
 	<exclude-pattern>tests/fixtures/*</exclude-pattern>
+
+	<!--
+		Sniffs read properties off PHP_CodeSniffer and PHPCSUtils classes, which
+		name them in camelCase. They are third-party API and cannot be renamed, so
+		they are allowed by name rather than by switching the sniff off.
+	-->
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
+		<properties>
+			<property name="allowed_custom_properties" type="array">
+				<element value="emptyTokens"/>
+			</property>
+		</properties>
+	</rule>
 </ruleset>

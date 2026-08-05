@@ -28,4 +28,14 @@ if ( ! defined( 'PHP_CODESNIFFER_VERBOSITY' ) ) {
 	define( 'PHP_CODESNIFFER_VERBOSITY', 0 );
 }
 
+/*
+ * Ruleset elements can carry phpcs-only and phpcbf-only attributes, and WordPress-Core
+ * uses both. PHP_CodeSniffer reads this constant when it meets one, so a ruleset built
+ * without restricting the sniff list fatals if it is missing. These tests always run in
+ * report mode, never in fixer mode.
+ */
+if ( ! defined( 'PHP_CODESNIFFER_CBF' ) ) {
+	define( 'PHP_CODESNIFFER_CBF', false );
+}
+
 new PHP_CodeSniffer\Util\Tokens();
