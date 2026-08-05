@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<ruleset name="wp-php-standards">
+	<description>Lints this repository with the standard it ships.</description>
+
+	<rule ref="Newfold"/>
+
+	<file>Newfold</file>
+	<file>tests</file>
+
+	<!--
+		Fixtures are deliberately written to violate the sniffs under test, so
+		linting them reports the violations the tests exist to assert on.
+	-->
+	<exclude-pattern>tests/fixtures/*</exclude-pattern>
+</ruleset>

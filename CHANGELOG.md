@@ -20,6 +20,10 @@ All notable changes to this project are documented here. The format follows
   transitively through WPCS; the custom sniffs are moving onto it, so it is a
   direct dependency now.
 - This changelog, and a documented versioning policy in the readme.
+- A test suite for the custom sniffs, run by `composer run test`, plus a CI
+  workflow covering PHP 7.4 through 8.4. The sniffs branch on tokenizer
+  differences between PHP 7 and PHP 8, so the matrix spans both.
+- `phpcs.xml.dist`, so the repository can be linted with the standard it ships.
 
 ## 1.2.6 - 2026-05-11
 
