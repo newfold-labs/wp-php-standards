@@ -49,3 +49,10 @@ do_action( 'newfold/settings/action/before-save:page' );
 // Not a call to the global function.
 $obj->do_action( 'nope' );
 Thing::apply_filters( 'nope' );
+
+// The vendor itself is only known at runtime, so nothing can be judged.
+do_action( "{$vendor}/settings/action/onSave" );
+
+// Passed by name rather than by position.
+do_action( hook_name: 'newfold/settings/action/before_save' );
+apply_filters( hook_name: 'newfold/settings/filter/getTemplate', value: $value );

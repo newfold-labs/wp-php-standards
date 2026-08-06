@@ -47,9 +47,40 @@ class ValidHookNameSniffTest extends SniffTestCase {
 				45 => array( 'NotCamelCase' ),
 				46 => array( 'NotCamelCase' ),
 				47 => array( 'NotCamelCase' ),
+				57 => array( 'NotCamelCase' ),
 			),
 			'hook-name.inc'
 		);
+	}
+
+	/**
+	 * A hook name passed by name rather than by position is still checked.
+	 *
+	 * Line 57 passes a bad name as "hook_name:" and line 58 passes a good one. The
+	 * position of the hook name moves with named arguments, so a sniff reading the
+	 * first parameter by index alone would check the wrong thing or nothing at all.
+	 *
+	 * @return void
+	 */
+	public function test_reads_the_hook_name_from_a_named_argument() {
+		$errors = $this->get_errors( 'hook-name.inc' );
+
+		$this->assertArrayHasKey( 57, $errors, 'A named argument carries the hook name too.' );
+		$this->assertArrayNotHasKey( 58, $errors, 'A valid name passed by name is still valid.' );
+	}
+
+	/**
+	 * A vendor that is only known at runtime is not treated as a missing prefix.
+	 *
+	 * Line 54 embeds the first segment. It could resolve to "newfold", so reporting
+	 * a missing prefix would be a guess. The sniff stops rather than guessing, which
+	 * also means the rest of that name goes unchecked.
+	 *
+	 * @return void
+	 */
+	public function test_ignores_a_hook_whose_vendor_is_dynamic() {
+		$this->assertArrayNotHasKey( 54, $this->get_errors( 'hook-name.inc' ) );
+		$this->assertArrayNotHasKey( 54, $this->get_warnings( 'hook-name.inc' ) );
 	}
 
 	/**
