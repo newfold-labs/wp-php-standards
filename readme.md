@@ -66,6 +66,31 @@ Optionally, add a script to your `composer.json` file, so you can just run `comp
 }
 ```
 
+## Custom sniffs
+
+On top of WordPress-Extra, WordPress-Docs and PHPCompatibilityWP, this standard adds:
+
+| Sniff | Checks |
+| --- | --- |
+| `Newfold.NamingConventions.ValidHookName` | Hooks we fire are named `newfold/[context]/[action\|filter]/[name]`. |
+| `Newfold.PHP.ForbiddenDoubleColonClass` | No `::class::` chains, which do not parse before PHP 8.3. |
+| `Newfold.PHP.ForbiddenUnionType` | No union type declarations, which do not parse on PHP 7. |
+
+`WordPress.NamingConventions.ValidHookName` is excluded, since it expects lowercase
+underscore-separated hook names and would report every hook named to our convention.
+
+Hooks that predate the convention and cannot be renamed can be listed in your ruleset:
+
+```xml
+<rule ref="Newfold.NamingConventions.ValidHookName">
+    <properties>
+        <property name="allowed_hook_names" type="array">
+            <element value="nfd_build_url"/>
+        </property>
+    </properties>
+</rule>
+```
+
 ## Additional Notes
 
 - Append the `-s` flag to see the internal names of the rules.

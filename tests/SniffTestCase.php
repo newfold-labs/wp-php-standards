@@ -40,12 +40,20 @@ abstract class SniffTestCase extends TestCase {
 	protected $fixture_dir = '';
 
 	/**
+	 * Properties to set on the sniff before the run, as a ruleset would.
+	 *
+	 * @var array<string, mixed>
+	 */
+	protected $sniff_properties = array();
+
+	/**
 	 * Resets state that leaks between tests.
 	 *
 	 * @return void
 	 */
 	protected function setUp(): void {
 		parent::setUp();
+		$this->sniff_properties = array();
 		$this->reset_php_compatibility_helper_cache();
 	}
 
@@ -99,6 +107,65 @@ abstract class SniffTestCase extends TestCase {
 	}
 
 	/**
+	 * Asserts the exact error codes the sniff reports, keyed by line.
+	 *
+	 * Line numbers alone say a violation was found somewhere, not that the right
+	 * one was found. A sniff with several codes needs the code asserted too, or a
+	 * check reporting the wrong reason still passes.
+	 *
+	 * @param array<int, array<int, string>> $expected     Error codes by line, without the sniff prefix.
+	 * @param string                         $fixture      Fixture file name.
+	 * @param string                         $test_version Value for the testVersion config.
+	 *
+	 * @return void
+	 */
+	protected function assertErrorCodes( array $expected, $fixture, $test_version = '7.3-' ) {
+		$this->assertSame(
+			$this->qualify( $expected ),
+			$this->get_errors( $fixture, $test_version ),
+			sprintf( 'Unexpected errors in %s.', $fixture )
+		);
+	}
+
+	/**
+	 * Asserts the exact warning codes the sniff reports, keyed by line.
+	 *
+	 * @param array<int, array<int, string>> $expected     Warning codes by line, without the sniff prefix.
+	 * @param string                         $fixture      Fixture file name.
+	 * @param string                         $test_version Value for the testVersion config.
+	 *
+	 * @return void
+	 */
+	protected function assertWarningCodes( array $expected, $fixture, $test_version = '7.3-' ) {
+		$this->assertSame(
+			$this->qualify( $expected ),
+			$this->get_warnings( $fixture, $test_version ),
+			sprintf( 'Unexpected warnings in %s.', $fixture )
+		);
+	}
+
+	/**
+	 * Expands short error codes into the full sources PHP_CodeSniffer reports.
+	 *
+	 * @param array<int, array<int, string>> $expected Codes by line, without the sniff prefix.
+	 *
+	 * @return array<int, array<int, string>>
+	 */
+	private function qualify( array $expected ) {
+		$qualified = array();
+
+		foreach ( $expected as $line => $codes ) {
+			foreach ( $codes as $code ) {
+				$qualified[ $line ][] = $this->sniff . '.' . $code;
+			}
+		}
+
+		ksort( $qualified );
+
+		return $qualified;
+	}
+
+	/**
 	 * Runs the sniff and collects one violation type.
 	 *
 	 * @param string $fixture      Fixture file name.
@@ -118,7 +185,10 @@ abstract class SniffTestCase extends TestCase {
 		$config->standards = array( 'Newfold' );
 		$config->sniffs    = array( $this->sniff );
 
-		$file = new LocalFile( $path, new Ruleset( $config ), $config );
+		$ruleset = new Ruleset( $config );
+		$this->apply_sniff_properties( $ruleset );
+
+		$file = new LocalFile( $path, $ruleset, $config );
 		$file->process();
 
 		$violations = ( 'warnings' === $type ) ? $file->getWarnings() : $file->getErrors();
@@ -135,6 +205,40 @@ abstract class SniffTestCase extends TestCase {
 		ksort( $found );
 
 		return $found;
+	}
+
+	/**
+	 * Sets the configured properties on the sniff under test.
+	 *
+	 * This is the same call PHP_CodeSniffer makes for a <property> element in a
+	 * ruleset, so a property tested here behaves the way it will when a consuming
+	 * repository configures it.
+	 *
+	 * @param Ruleset $ruleset The ruleset holding the sniff.
+	 *
+	 * @return void
+	 */
+	private function apply_sniff_properties( Ruleset $ruleset ) {
+		if ( array() === $this->sniff_properties ) {
+			return;
+		}
+
+		$this->assertArrayHasKey(
+			$this->sniff,
+			$ruleset->sniffCodes,
+			sprintf( 'Sniff %s is not in the ruleset.', $this->sniff )
+		);
+
+		foreach ( $this->sniff_properties as $name => $value ) {
+			$ruleset->setSniffProperty(
+				$ruleset->sniffCodes[ $this->sniff ],
+				$name,
+				array(
+					'scope' => 'sniff',
+					'value' => $value,
+				)
+			);
+		}
 	}
 
 	/**

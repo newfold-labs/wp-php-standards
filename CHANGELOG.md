@@ -29,6 +29,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- `WordPress.NamingConventions.ValidHookName` is excluded from the standard. It
+  expects lowercase underscore-separated hook names, so it reported every hook
+  named to our own convention.
+
 - Pinned every dependency to an explicit range. All four were `@stable`, which
   accepts any future major. A new PHP_CodeSniffer, WPCS or PHPCompatibility major
   would have landed in every consumer's CI on the next `composer update` with no
@@ -36,6 +40,21 @@ All notable changes to this project are documented here. The format follows
   no change in behaviour today.
 
 ### Added
+
+- `Newfold.NamingConventions.ValidHookName`, which checks that hooks we fire are
+  named `newfold/[context]/[action|filter]/[name]`. It reports a name with the
+  wrong number of segments, a context that is not a lowercase slug, a type that is
+  neither `action` nor `filter`, a name that is not camel case, and a `do_action()`
+  firing a hook named as a filter or the other way round. Names assembled at
+  runtime are checked as far as they are known: an embedded value stands in for one
+  segment, so the rest of the name is still checked.
+
+  A missing `newfold/` prefix is reported as a warning rather than an error,
+  because the hook naming standard and the PHP standard do not currently agree on
+  what an unprefixed hook name means. Hooks that cannot be renamed can be listed in
+  the sniff's `allowed_hook_names` property.
+
+  This is a breaking change. Code that passed before can fail now.
 
 - `phpcsstandards/phpcsutils` as an explicit dependency. It was already installed
   transitively through WPCS; the custom sniffs are moving onto it, so it is a

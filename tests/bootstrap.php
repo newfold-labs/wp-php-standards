@@ -39,3 +39,14 @@ if ( ! defined( 'PHP_CODESNIFFER_CBF' ) ) {
 }
 
 new PHP_CodeSniffer\Util\Tokens();
+
+/*
+ * Standards installed through Composer are not registered with PHP_CodeSniffer's
+ * autoloader by Ruleset, only by Runner, which these tests do not go through. Our
+ * sniffs extend base classes that live in WordPressCS, and WordPressCS ships no
+ * Composer autoload configuration of its own, so without this they cannot be found.
+ * These are the same two lines Runner::init() runs.
+ */
+foreach ( PHP_CodeSniffer\Util\Standards::getInstalledStandardDetails() as $standard ) {
+	PHP_CodeSniffer\Autoload::addSearchPath( $standard['path'], $standard['namespace'] );
+}

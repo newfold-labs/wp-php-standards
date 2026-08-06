@@ -56,6 +56,13 @@
         <!-- Forget about file names -->
         <exclude name="WordPress.Files.FileName"/>
 
+        <!--
+            Our hooks are named "newfold/[context]/[action|filter]/[name]", which this
+            sniff reads as an uppercase, unseparated hook name. Newfold.NamingConventions.ValidHookName
+            enforces our convention instead.
+        -->
+        <exclude name="WordPress.NamingConventions.ValidHookName"/>
+
         <!-- Allow same line control structures e.g. if ( true ) { echo 1; } -->
         <exclude name="Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace"/>
 
@@ -94,5 +101,8 @@
 
     <!-- Custom Newfold sniff to detect PHP 8 union type syntax (e.g. array|\WP_Error) when targeting PHP 7 -->
     <rule ref="Newfold.PHP.ForbiddenUnionType"/>
+
+    <!-- Custom Newfold sniff for the "newfold/[context]/[action|filter]/[name]" hook convention -->
+    <rule ref="Newfold.NamingConventions.ValidHookName"/>
 
 </ruleset>
