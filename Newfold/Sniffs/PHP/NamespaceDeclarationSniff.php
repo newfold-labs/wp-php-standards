@@ -89,14 +89,13 @@ class NamespaceDeclarationSniff implements Sniff {
 		}
 
 		if ( isset( $segments[2] ) && false === in_array( $segments[2], self::TYPES, true ) ) {
-			$this->report_prefix(
-				$phpcs_file,
+			$phpcs_file->addError(
+				'A namespace should say what it belongs to. Expected one of %s, but found "%s" in "%s".',
 				$stack_ptr,
-				$segments[2],
-				implode( ', ', self::TYPES ),
-				$name,
-				$expected
+				'InvalidPrefix',
+				array( '"' . implode( '", "', self::TYPES ) . '"', $segments[2], $name )
 			);
+
 			return;
 		}
 
