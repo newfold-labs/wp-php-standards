@@ -29,6 +29,16 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- `testVersion` raised from `7.3-` to `7.4-`, and `minimum_supported_wp_version`
+  from `5.8` to `6.6`. 7.4 is the floor in the support matrix, the minimum
+  WordPress itself supports, and the floor this repository already tests against.
+  6.6 is what every brand plugin declares in its `Requires at least` header.
+
+  In practice this changes nothing for any current consumer. Every repository in
+  the Satis index that lints with this standard sets both values in its own
+  ruleset, so the defaults here are the documented position rather than an
+  enforcement point.
+
 - `WordPress.NamingConventions.ValidHookName` is excluded from the standard. It
   expects lowercase underscore-separated hook names, so it reported every hook
   named to our own convention.
@@ -64,6 +74,15 @@ All notable changes to this project are documented here. The format follows
 
   A file with no namespace is left alone. The main file of a plugin or theme runs
   in the global namespace on purpose.
+
+  This is a breaking change. Code that passed before can fail now.
+
+- Prefixes on `WordPress.NamingConventions.PrefixAllGlobals`, so names entering the
+  global namespace are checked for a company prefix. The list is `nfd_` and
+  `newfold`. Matching is case insensitive, so those two cover `NFD_` and `Newfold`;
+  the sniff rejects a prefix under four characters, which rules out `nfd`, and one
+  that is not a legal PHP identifier, which rules out the `nfd-` handle form. A
+  product should add its own prefix on top of these in its own ruleset.
 
   This is a breaking change. Code that passed before can fail now.
 

@@ -4,11 +4,20 @@
 
     <arg name="colors"/>
 
-    <!-- Sets the supported PHP version range. -->
-    <config name="testVersion" value="7.3-"/>
+    <!--
+        The supported PHP version range. The floor is the minimum in the support matrix,
+        which is the minimum WordPress itself supports, and the same floor this repository
+        runs its own tests against.
+    -->
+    <config name="testVersion" value="7.4-"/>
 
-    <!-- Sets the minimum supported WP version to 5.8, which requires PHP 5.6+ -->
-    <config name="minimum_supported_wp_version" value="5.8"/>
+    <!--
+        The minimum supported WP version, which decides how far back WordPress deprecations
+        are reported. 6.6 is what every brand plugin declares in its "Requires at least"
+        header. The support matrix asks for the last three majors, which reads higher, so a
+        repository that has moved past 6.6 should say so in its own ruleset.
+    -->
+    <config name="minimum_supported_wp_version" value="6.6"/>
 
     <!-- For CI, don't fail on warnings -->
     <config name="ignore_warnings_on_exit" value="1"/>
@@ -74,6 +83,24 @@
 
         <!-- Comment punctuation doesn't matter -->
         <exclude name="Squiz.Commenting.FunctionComment.ParamCommentFullStop"/>
+    </rule>
+
+    <!--
+        Names that land in the global namespace carry a company prefix. Matching is case
+        insensitive, so "nfd_" covers "NFD_" and "newfold" covers "Newfold". Both are four
+        characters or more, which the sniff requires, and both are legal PHP identifiers,
+        which rules out the "nfd-" kebab form used for asset handles.
+
+        A product should add its own prefix on top of these in its ruleset, so that
+        searching for it finds everything the product owns.
+    -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="nfd_"/>
+                <element value="newfold"/>
+            </property>
+        </properties>
     </rule>
 
     <!-- Make missing translator comment a warning. -->
