@@ -105,4 +105,7 @@
     <!-- Custom Newfold sniff for the "newfold/[context]/[action|filter]/[name]" hook convention -->
     <rule ref="Newfold.NamingConventions.ValidHookName"/>
 
+    <!-- Custom Newfold sniff for the "Newfold\WP\{Plugin|Theme|Module}\{Name}" namespace convention -->
+    <rule ref="Newfold.PHP.NamespaceDeclaration"/>
+
 </ruleset>

@@ -73,6 +73,7 @@ On top of WordPress-Extra, WordPress-Docs and PHPCompatibilityWP, this standard 
 | Sniff | Checks |
 | --- | --- |
 | `Newfold.NamingConventions.ValidHookName` | Hooks we fire are named `newfold/[context]/[action\|filter]/[name]`. |
+| `Newfold.PHP.NamespaceDeclaration` | Declared namespaces start with `Newfold\WP\{Plugin\|Theme\|Module}\{Name}`. |
 | `Newfold.PHP.ForbiddenDoubleColonClass` | No `::class::` chains, which do not parse before PHP 8.3. |
 | `Newfold.PHP.ForbiddenUnionType` | No union type declarations, which do not parse on PHP 7. |
 
