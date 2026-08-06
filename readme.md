@@ -91,6 +91,16 @@ Hooks that predate the convention and cannot be renamed can be listed in your ru
 </rule>
 ```
 
+A hook name without the `newfold/` prefix is reported as a warning, because the hook
+naming standard and the PHP standard do not yet agree on what an unprefixed hook name
+means. Promote it once your project is on the convention:
+
+```xml
+<rule ref="Newfold.NamingConventions.ValidHookName.MissingVendorPrefix">
+    <type>error</type>
+</rule>
+```
+
 ## Additional Notes
 
 - Append the `-s` flag to see the internal names of the rules.
