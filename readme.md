@@ -130,7 +130,7 @@ means. Promote it once your project is on the convention:
 
 The standard defaults to `testVersion` `7.4-` and `minimum_supported_wp_version` `6.6`,
 which are the floors in the [support matrix](https://newfold-labs.github.io/standards/platform/wordpress/support-matrix.html).
-Override them if your project supports a narrower range:
+Override them if your project targets something different, in either direction:
 
 ```xml
 <?xml version="1.0"?>

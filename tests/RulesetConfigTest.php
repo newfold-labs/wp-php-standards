@@ -94,6 +94,8 @@ class RulesetConfigTest extends SniffTestCase {
 			),
 			'prefixes.inc'
 		);
+
+		$this->assertWarningCodes( array(), 'prefixes.inc' );
 	}
 
 	/**
@@ -107,7 +109,13 @@ class RulesetConfigTest extends SniffTestCase {
 	 * @return void
 	 */
 	public function test_ruleset_targets_the_supported_versions() {
-		$ruleset = simplexml_load_file( __DIR__ . '/../Newfold/ruleset.xml' );
+		$path = __DIR__ . '/../Newfold/ruleset.xml';
+
+		$this->assertFileExists( $path );
+
+		// LIBXML_NONET keeps the parse local, so a ruleset can never pull in anything
+		// over the network while the suite runs.
+		$ruleset = simplexml_load_file( $path, 'SimpleXMLElement', LIBXML_NONET );
 
 		$this->assertNotFalse( $ruleset, 'Newfold/ruleset.xml should be readable XML.' );
 

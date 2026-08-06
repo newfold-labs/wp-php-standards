@@ -26,6 +26,16 @@ use ReflectionClass;
 abstract class SniffTestCase extends TestCase {
 
 	/**
+	 * The testVersion the tests run against unless one is passed.
+	 *
+	 * Matches the floor the shipped ruleset targets, so the suite exercises the
+	 * configuration consumers get rather than one that only exists in the tests.
+	 *
+	 * @var string
+	 */
+	const DEFAULT_TEST_VERSION = '7.4-';
+
+	/**
 	 * The sniff under test, in PHP_CodeSniffer dot notation.
 	 *
 	 * @var string
@@ -77,7 +87,7 @@ abstract class SniffTestCase extends TestCase {
 	 *
 	 * @return array<int, array<int, string>> Error codes found, keyed by line number.
 	 */
-	protected function get_errors( $fixture, $test_version = '7.4-' ) {
+	protected function get_errors( $fixture, $test_version = self::DEFAULT_TEST_VERSION ) {
 		return $this->run_sniff( $fixture, $test_version, 'errors' );
 	}
 
@@ -89,7 +99,7 @@ abstract class SniffTestCase extends TestCase {
 	 *
 	 * @return array<int, array<int, string>> Warning codes found, keyed by line number.
 	 */
-	protected function get_warnings( $fixture, $test_version = '7.4-' ) {
+	protected function get_warnings( $fixture, $test_version = self::DEFAULT_TEST_VERSION ) {
 		return $this->run_sniff( $fixture, $test_version, 'warnings' );
 	}
 
@@ -105,7 +115,7 @@ abstract class SniffTestCase extends TestCase {
 	 *
 	 * @return void
 	 */
-	protected function assertErrorsOnLines( array $expected_lines, $fixture, $test_version = '7.4-' ) {
+	protected function assertErrorsOnLines( array $expected_lines, $fixture, $test_version = self::DEFAULT_TEST_VERSION ) {
 		$found = array_keys( $this->get_errors( $fixture, $test_version ) );
 		sort( $found );
 		sort( $expected_lines );
@@ -130,7 +140,7 @@ abstract class SniffTestCase extends TestCase {
 	 *
 	 * @return void
 	 */
-	protected function assertErrorCodes( array $expected, $fixture, $test_version = '7.4-' ) {
+	protected function assertErrorCodes( array $expected, $fixture, $test_version = self::DEFAULT_TEST_VERSION ) {
 		$this->assertSame(
 			$this->qualify( $expected ),
 			$this->get_errors( $fixture, $test_version ),
@@ -147,7 +157,7 @@ abstract class SniffTestCase extends TestCase {
 	 *
 	 * @return void
 	 */
-	protected function assertWarningCodes( array $expected, $fixture, $test_version = '7.4-' ) {
+	protected function assertWarningCodes( array $expected, $fixture, $test_version = self::DEFAULT_TEST_VERSION ) {
 		$this->assertSame(
 			$this->qualify( $expected ),
 			$this->get_warnings( $fixture, $test_version ),
