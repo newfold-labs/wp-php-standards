@@ -5,9 +5,9 @@
  * @package Newfold
  */
 
-namespace Newfold\WP\Module\Staging;
+namespace NewfoldLabs\WP\Module\Staging;
 
-use Newfold\WP\Module\Staging\Data\Repository;
+use NewfoldLabs\WP\Module\Staging\Data\Repository;
 
 // The namespace operator, which is not a declaration and has nothing to check.
 $result = namespace\get_environment();

@@ -7,7 +7,7 @@
 			This repository is a PHP_CodeSniffer standard, not a plugin, theme or module.
 			PHP_CodeSniffer resolves a sniff class from the standard's directory name, so
 			these sniffs have to live in "Newfold\Sniffs\<Category>" and cannot follow the
-			"Newfold\WP\{Plugin|Theme|Module}\{Name}" convention they enforce.
+			"NewfoldLabs\WP\{Plugin|Theme|Module}\{Name}" convention they enforce.
 		-->
 		<exclude name="Newfold.PHP.NamespaceDeclaration"/>
 	</rule>

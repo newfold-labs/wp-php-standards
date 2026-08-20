@@ -59,23 +59,27 @@ All notable changes to this project are documented here. The format follows
   runtime are checked as far as they are known: an embedded value stands in for one
   segment, so the rest of the name is still checked.
 
-  A missing `newfold/` prefix is reported as a warning rather than an error,
-  because the hook naming standard and the PHP standard do not currently agree on
-  what an unprefixed hook name means. Hooks that cannot be renamed can be listed in
-  the sniff's `allowed_hook_names` property.
+  Reported as a warning, not an error. A hook named against the convention still
+  runs, and this standard reserves errors for code that does not parse. Hooks that
+  cannot be renamed can be listed in the sniff's `allowed_hook_names` property, and
+  a project ready to enforce the convention can promote the sniff in its own
+  ruleset.
 
-  This is a breaking change. Code that passed before can fail now.
+  Nothing that passed before fails because of this.
 
 - `Newfold.PHP.NamespaceDeclaration`, which checks that a declared namespace starts
-  with `Newfold\WP\{Plugin|Theme|Module}\{Name}`. Only those four parts are fixed,
-  so `Newfold\WP\Module\Staging\Data\Repository` passes. The fixed parts are matched
-  case sensitively, since PSR-4 directories mirror the casing even though PHP
-  resolves namespaces without regard to it.
+  with `NewfoldLabs\WP\{Plugin|Theme|Module}\{Name}`. Only those four parts are
+  fixed, so `NewfoldLabs\WP\Module\Staging\Data\Repository` passes. The fixed
+  parts are matched case sensitively, since PSR-4 directories mirror the casing even
+  though PHP resolves namespaces without regard to it.
 
   A file with no namespace is left alone. The main file of a plugin or theme runs
   in the global namespace on purpose.
 
-  This is a breaking change. Code that passed before can fail now.
+  Reported as a warning, not an error. A namespace against the convention still
+  loads, and this standard reserves errors for code that does not parse. Renaming a
+  namespace moves files and breaks every reference to the class names in it, so this
+  is a migration to schedule rather than a build to fail.
 
 - Prefixes on `WordPress.NamingConventions.PrefixAllGlobals`, so names entering the
   global namespace are checked for a company prefix. The list is `nfd_` and

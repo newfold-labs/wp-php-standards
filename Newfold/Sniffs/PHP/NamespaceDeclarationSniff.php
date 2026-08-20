@@ -12,10 +12,10 @@ use PHP_CodeSniffer\Sniffs\Sniff;
 use PHPCSUtils\Utils\Namespaces;
 
 /**
- * Checks that declared namespaces start with "Newfold\WP\{Plugin|Theme|Module}\{Name}".
+ * Checks that declared namespaces start with "NewfoldLabs\WP\{Plugin|Theme|Module}\{Name}".
  *
  * Only the first four parts are fixed. Anything below the product name is up to
- * the product, so "Newfold\WP\Module\Staging\Data\Repository" is fine.
+ * the product, so "NewfoldLabs\WP\Module\Staging\Data\Repository" is fine.
  *
  * A file with no namespace declaration is left alone. The main file of a plugin
  * or theme is expected to run in the global namespace, since it defines the
@@ -28,7 +28,7 @@ class NamespaceDeclarationSniff implements Sniff {
 	 *
 	 * @var string
 	 */
-	const VENDOR = 'Newfold';
+	const VENDOR = 'NewfoldLabs';
 
 	/**
 	 * The platform part, which follows the vendor.

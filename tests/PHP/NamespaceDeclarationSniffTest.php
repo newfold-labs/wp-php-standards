@@ -52,8 +52,8 @@ class NamespaceDeclarationSniffTest extends SniffTestCase {
 	/**
 	 * The fixed part of the namespace is matched case sensitively.
 	 *
-	 * PHP resolves namespaces without regard to case, so "newfold\WP" and
-	 * "Newfold\Wp" both work at runtime. The convention is about how the code
+	 * PHP resolves namespaces without regard to case, so "newfoldlabs\WP" and
+	 * "NewfoldLabs\Wp" both work at runtime. The convention is about how the code
 	 * reads, and PSR-4 directories mirror the casing, so both report.
 	 *
 	 * @return void
@@ -61,7 +61,7 @@ class NamespaceDeclarationSniffTest extends SniffTestCase {
 	public function test_matches_the_fixed_part_case_sensitively() {
 		$errors = $this->get_errors( 'namespace-declaration.inc' );
 
-		$this->assertArrayHasKey( 29, $errors, 'The vendor is "Newfold", not "newfold".' );
+		$this->assertArrayHasKey( 29, $errors, 'The vendor is "NewfoldLabs", not "newfoldlabs".' );
 		$this->assertArrayHasKey( 32, $errors, 'The platform is "WP", not "Wp".' );
 	}
 
@@ -79,7 +79,7 @@ class NamespaceDeclarationSniffTest extends SniffTestCase {
 		$this->assertArrayNotHasKey(
 			23,
 			$errors,
-			'Newfold\WP\Module\Staging\Data\Repository is a valid sub-namespace.'
+			'NewfoldLabs\WP\Module\Staging\Data\Repository is a valid sub-namespace.'
 		);
 	}
 
