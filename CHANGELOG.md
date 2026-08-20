@@ -29,6 +29,16 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- `testVersion` raised from `7.3-` to `7.4-`, and `minimum_supported_wp_version`
+  from `5.8` to `6.6`. 7.4 is the floor in the support matrix, the minimum
+  WordPress itself supports, and the floor this repository already tests against.
+  6.6 is what every brand plugin declares in its `Requires at least` header.
+
+  In practice this changes nothing for any current consumer. Every repository in
+  the Satis index that lints with this standard sets both values in its own
+  ruleset, so the defaults here are the documented position rather than an
+  enforcement point.
+
 - `WordPress.NamingConventions.ValidHookName` is excluded from the standard. It
   expects lowercase underscore-separated hook names, so it reported every hook
   named to our own convention.
@@ -56,6 +66,31 @@ All notable changes to this project are documented here. The format follows
   ruleset.
 
   Nothing that passed before fails because of this.
+
+- `Newfold.PHP.NamespaceDeclaration`, which checks that a declared namespace starts
+  with `NewfoldLabs\WP\{Plugin|Theme|Module}\{Name}`. Only those four parts are
+  fixed, so `NewfoldLabs\WP\Module\Staging\Data\Repository` passes. The fixed
+  parts are matched case sensitively, since PSR-4 directories mirror the casing even
+  though PHP resolves namespaces without regard to it.
+
+  A file with no namespace is left alone. The main file of a plugin or theme runs
+  in the global namespace on purpose.
+
+  Reported as a warning, not an error. A namespace against the convention still
+  loads, and this standard reserves errors for code that does not parse. Renaming a
+  namespace moves files and breaks every reference to the class names in it, so this
+  is a migration to schedule rather than a build to fail.
+
+- Prefixes on `WordPress.NamingConventions.PrefixAllGlobals`, so names entering the
+  global namespace are checked for a company prefix. The list is `nfd_` and
+  `newfold`. Matching is case insensitive, so those two cover `NFD_` and `Newfold`;
+  the sniff rejects a prefix under four characters, which rules out `nfd`, and one
+  that is not a legal PHP identifier, which rules out the `nfd-` handle form. A
+  product should add its own prefix on top of these in its own ruleset.
+
+  Reported as a warning. An unprefixed global still runs, and some cannot be
+  renamed at all: a module that re-fires a WordPress hook has to fire it under the
+  name core gave it.
 
 - `phpcsstandards/phpcsutils` as an explicit dependency. It was already installed
   transitively through WPCS; the custom sniffs are moving onto it, so it is a
