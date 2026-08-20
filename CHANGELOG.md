@@ -88,7 +88,9 @@ All notable changes to this project are documented here. The format follows
   that is not a legal PHP identifier, which rules out the `nfd-` handle form. A
   product should add its own prefix on top of these in its own ruleset.
 
-  This is a breaking change. Code that passed before can fail now.
+  Reported as a warning. An unprefixed global still runs, and some cannot be
+  renamed at all: a module that re-fires a WordPress hook has to fire it under the
+  name core gave it.
 
 - `phpcsstandards/phpcsutils` as an explicit dependency. It was already installed
   transitively through WPCS; the custom sniffs are moving onto it, so it is a

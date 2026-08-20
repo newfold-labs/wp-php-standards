@@ -45,21 +45,26 @@ class RulesetConfigTest extends SniffTestCase {
 	 * code. The sniff then reports every global in the codebase as unprefixed,
 	 * which reads as the codebase being wrong rather than the ruleset.
 	 *
-	 * The two are reported at different severities, so both have to be read.
-	 * ShortPrefixPassed is an error and InvalidPrefixPassed is a warning.
+	 * The ruleset reports this sniff as a warning, so both codes land in the warning
+	 * list. Reading both lists anyway keeps the assertion honest if that changes.
 	 *
 	 * @return void
 	 */
 	public function test_configured_prefixes_are_accepted_by_the_sniff() {
+		$reported = array_merge(
+			$this->flatten( $this->get_errors( 'prefixes.inc' ) ),
+			$this->flatten( $this->get_warnings( 'prefixes.inc' ) )
+		);
+
 		$this->assertNotContains(
 			'WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed',
-			$this->flatten( $this->get_errors( 'prefixes.inc' ) ),
+			$reported,
 			'A configured prefix is shorter than the four characters the sniff requires.'
 		);
 
 		$this->assertNotContains(
 			'WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed',
-			$this->flatten( $this->get_warnings( 'prefixes.inc' ) ),
+			$reported,
 			'A configured prefix is not a legal PHP identifier.'
 		);
 	}
@@ -85,7 +90,7 @@ class RulesetConfigTest extends SniffTestCase {
 	 * @return void
 	 */
 	public function test_reports_only_the_globals_without_a_company_prefix() {
-		$this->assertErrorCodes(
+		$this->assertWarningCodes(
 			array(
 				19 => array( 'NonPrefixedFunctionFound' ),
 				23 => array( 'NonPrefixedConstantFound' ),
@@ -95,7 +100,7 @@ class RulesetConfigTest extends SniffTestCase {
 			'prefixes.inc'
 		);
 
-		$this->assertWarningCodes( array(), 'prefixes.inc' );
+		$this->assertErrorCodes( array(), 'prefixes.inc' );
 	}
 
 	/**
@@ -121,6 +126,63 @@ class RulesetConfigTest extends SniffTestCase {
 
 		$this->assertSame( '7.4-', $this->config_value( $ruleset, 'testVersion' ) );
 		$this->assertSame( '6.6', $this->config_value( $ruleset, 'minimum_supported_wp_version' ) );
+	}
+
+	/**
+	 * Errors are reserved for code that does not parse.
+	 *
+	 * Everything else reports as a warning, which the ruleset's
+	 * ignore_warnings_on_exit keeps out of the exit code. A convention this standard
+	 * has only just started checking should be visible in a repository long before
+	 * it is allowed to stop that repository shipping.
+	 *
+	 * Listing every custom sniff means adding one without deciding its severity
+	 * fails here rather than landing at whatever PHP_CodeSniffer defaults to.
+	 *
+	 * @return void
+	 */
+	public function test_only_unparsable_code_is_reported_as_an_error() {
+		$expected = array(
+			// Union types and "::class::" chains are parse errors on the versions we
+			// support, so the file does not run at all.
+			'Newfold.PHP.ForbiddenUnionType'               => null,
+			'Newfold.PHP.ForbiddenDoubleColonClass'        => null,
+
+			// Conventions. Code that breaks them still runs.
+			'Newfold.NamingConventions.ValidHookName'      => 'warning',
+			'Newfold.PHP.NamespaceDeclaration'             => 'warning',
+			'WordPress.NamingConventions.PrefixAllGlobals' => 'warning',
+		);
+
+		$path = __DIR__ . '/../Newfold/ruleset.xml';
+
+		$this->assertFileExists( $path );
+
+		$ruleset = simplexml_load_file( $path, 'SimpleXMLElement', LIBXML_NONET );
+
+		$this->assertNotFalse( $ruleset, 'Newfold/ruleset.xml should be readable XML.' );
+
+		$found = array();
+
+		foreach ( $ruleset->rule as $rule ) {
+			$ref = (string) $rule['ref'];
+
+			if ( false === array_key_exists( $ref, $expected ) ) {
+				continue;
+			}
+
+			$found[ $ref ] = isset( $rule->type ) ? (string) $rule->type : null;
+		}
+
+		// Sorted, so the assertion is about severity rather than declaration order.
+		ksort( $expected );
+		ksort( $found );
+
+		$this->assertSame(
+			$expected,
+			$found,
+			'A sniff in the ruleset does not report at the severity the standard intends.'
+		);
 	}
 
 	/**

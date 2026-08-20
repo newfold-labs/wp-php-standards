@@ -95,6 +95,13 @@
         searching for it finds everything the product owns.
     -->
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <!--
+            A warning, on the same basis as the two custom naming sniffs: an unprefixed
+            global still runs, and it collides only if something else claims the same
+            name. Some of them cannot be renamed at all, since a module that re-fires a
+            WordPress hook has to fire it under the name core gave it.
+        -->
+        <type>warning</type>
         <properties>
             <property name="prefixes" type="array">
                 <element value="nfd_"/>
