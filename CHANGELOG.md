@@ -49,12 +49,13 @@ All notable changes to this project are documented here. The format follows
   runtime are checked as far as they are known: an embedded value stands in for one
   segment, so the rest of the name is still checked.
 
-  A missing `newfold/` prefix is reported as a warning rather than an error,
-  because the hook naming standard and the PHP standard do not currently agree on
-  what an unprefixed hook name means. Hooks that cannot be renamed can be listed in
-  the sniff's `allowed_hook_names` property.
+  Reported as a warning, not an error. A hook named against the convention still
+  runs, and this standard reserves errors for code that does not parse. Hooks that
+  cannot be renamed can be listed in the sniff's `allowed_hook_names` property, and
+  a project ready to enforce the convention can promote the sniff in its own
+  ruleset.
 
-  This is a breaking change. Code that passed before can fail now.
+  Nothing that passed before fails because of this.
 
 - `phpcsstandards/phpcsutils` as an explicit dependency. It was already installed
   transitively through WPCS; the custom sniffs are moving onto it, so it is a
