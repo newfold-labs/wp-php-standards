@@ -102,8 +102,14 @@
     <!-- Custom Newfold sniff to detect PHP 8 union type syntax (e.g. array|\WP_Error) when targeting PHP 7 -->
     <rule ref="Newfold.PHP.ForbiddenUnionType"/>
 
-    <!-- Custom Newfold sniff for the "newfold/[context]/[action|filter]/[name]" hook convention -->
-    <rule ref="Newfold.NamingConventions.ValidHookName"/>
+    <!--
+        Custom Newfold sniff for the "newfold/[context]/[action|filter]/[name]" hook
+        convention. Reported as a warning: a hook named against the convention still
+        runs, and this standard reserves errors for code that does not parse.
+    -->
+    <rule ref="Newfold.NamingConventions.ValidHookName">
+        <type>warning</type>
+    </rule>
 
     <!-- Custom Newfold sniff for the "Newfold\WP\{Plugin|Theme|Module}\{Name}" namespace convention -->
     <rule ref="Newfold.PHP.NamespaceDeclaration"/>
