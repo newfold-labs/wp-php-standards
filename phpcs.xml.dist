@@ -2,7 +2,15 @@
 <ruleset name="wp-php-standards">
 	<description>Lints this repository with the standard it ships.</description>
 
-	<rule ref="Newfold"/>
+	<rule ref="Newfold">
+		<!--
+			This repository is a PHP_CodeSniffer standard, not a plugin, theme or module.
+			PHP_CodeSniffer resolves a sniff class from the standard's directory name, so
+			these sniffs have to live in "Newfold\Sniffs\<Category>" and cannot follow the
+			"NewfoldLabs\WP\{Plugin|Theme|Module}\{Name}" convention they enforce.
+		-->
+		<exclude name="Newfold.PHP.NamespaceDeclaration"/>
+	</rule>
 
 	<file>Newfold</file>
 	<file>tests</file>
@@ -14,6 +22,14 @@
 	<exclude-pattern>tests/fixtures/*</exclude-pattern>
 
 	<!--
+		The PHPUnit bootstrap runs in the global namespace, and the constants it sets are
+		named by PHP_CodeSniffer rather than by us, so they cannot carry a company prefix.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>tests/bootstrap.php</exclude-pattern>
+	</rule>
+
+	<!--
 		Sniffs read properties off PHP_CodeSniffer and PHPCSUtils classes, which
 		name them in camelCase. They are third-party API and cannot be renamed, so
 		they are allowed by name rather than by switching the sniff off.
@@ -22,6 +38,9 @@
 		<properties>
 			<property name="allowed_custom_properties" type="array">
 				<element value="emptyTokens"/>
+				<element value="phpcsFile"/>
+				<element value="sniffCodes"/>
+				<element value="stringTokens"/>
 			</property>
 		</properties>
 	</rule>
