@@ -58,15 +58,18 @@ All notable changes to this project are documented here. The format follows
   Nothing that passed before fails because of this.
 
 - `Newfold.PHP.NamespaceDeclaration`, which checks that a declared namespace starts
-  with `Newfold\WP\{Plugin|Theme|Module}\{Name}`. Only those four parts are fixed,
-  so `Newfold\WP\Module\Staging\Data\Repository` passes. The fixed parts are matched
-  case sensitively, since PSR-4 directories mirror the casing even though PHP
-  resolves namespaces without regard to it.
+  with `NewfoldLabs\WP\{Plugin|Theme|Module}\{Name}`. Only those four parts are
+  fixed, so `NewfoldLabs\WP\Module\Staging\Data\Repository` passes. The fixed
+  parts are matched case sensitively, since PSR-4 directories mirror the casing even
+  though PHP resolves namespaces without regard to it.
 
   A file with no namespace is left alone. The main file of a plugin or theme runs
   in the global namespace on purpose.
 
-  This is a breaking change. Code that passed before can fail now.
+  Reported as a warning, not an error. A namespace against the convention still
+  loads, and this standard reserves errors for code that does not parse. Renaming a
+  namespace moves files and breaks every reference to the class names in it, so this
+  is a migration to schedule rather than a build to fail.
 
 - `phpcsstandards/phpcsutils` as an explicit dependency. It was already installed
   transitively through WPCS; the custom sniffs are moving onto it, so it is a

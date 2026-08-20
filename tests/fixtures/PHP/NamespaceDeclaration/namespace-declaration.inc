@@ -8,43 +8,43 @@
  * @package Newfold
  */
 
-namespace Newfold\WP\Plugin\Bluehost {
+namespace NewfoldLabs\WP\Plugin\Bluehost {
 }
 
-namespace Newfold\WP\Plugin\HostGator {
+namespace NewfoldLabs\WP\Plugin\HostGator {
 }
 
-namespace Newfold\WP\Module\Staging {
+namespace NewfoldLabs\WP\Module\Staging {
 }
 
-namespace Newfold\WP\Theme\Cortex {
+namespace NewfoldLabs\WP\Theme\Cortex {
 }
 
-namespace Newfold\WP\Module\Staging\Data\Repository {
+namespace NewfoldLabs\WP\Module\Staging\Data\Repository {
 }
 
 namespace Acme\WP\Module\Staging {
 }
 
-namespace newfold\WP\Module\Staging {
+namespace newfoldlabs\WP\Module\Staging {
 }
 
-namespace Newfold\Wp\Module\Staging {
+namespace NewfoldLabs\Wp\Module\Staging {
 }
 
-namespace Newfold\WP\Widget\Staging {
+namespace NewfoldLabs\WP\Widget\Staging {
 }
 
-namespace Newfold\WP\Module {
+namespace NewfoldLabs\WP\Module {
 }
 
-namespace Newfold {
+namespace NewfoldLabs {
 }
 
-namespace Newfold\WP\Module\staging {
+namespace NewfoldLabs\WP\Module\staging {
 }
 
-namespace Newfold\WP\Module\staging_area {
+namespace NewfoldLabs\WP\Module\staging_area {
 }
 
 namespace {

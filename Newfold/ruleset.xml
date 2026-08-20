@@ -111,7 +111,14 @@
         <type>warning</type>
     </rule>
 
-    <!-- Custom Newfold sniff for the "Newfold\WP\{Plugin|Theme|Module}\{Name}" namespace convention -->
-    <rule ref="Newfold.PHP.NamespaceDeclaration"/>
+    <!--
+        Custom Newfold sniff for the "NewfoldLabs\WP\{Plugin|Theme|Module}\{Name}"
+        namespace convention. Reported as a warning: a namespace against the
+        convention still loads, and this standard reserves errors for code that does
+        not parse.
+    -->
+    <rule ref="Newfold.PHP.NamespaceDeclaration">
+        <type>warning</type>
+    </rule>
 
 </ruleset>
