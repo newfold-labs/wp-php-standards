@@ -80,6 +80,26 @@ On top of WordPress-Extra, WordPress-Docs and PHPCompatibilityWP, this standard 
 `WordPress.NamingConventions.ValidHookName` is excluded, since it expects lowercase
 underscore-separated hook names and would report every hook named to our convention.
 
+### Global prefixes
+
+`WordPress.NamingConventions.PrefixAllGlobals` is configured with `nfd_` and `newfold`.
+Matching is case insensitive, so those cover `NFD_` and `Newfold` too. Add your own
+product prefix on top, so that searching for it finds everything the product owns:
+
+```xml
+<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+    <properties>
+        <property name="prefixes" type="array">
+            <element value="nfd_"/>
+            <element value="newfold"/>
+            <element value="nfd_performance_module_"/>
+        </property>
+    </properties>
+</rule>
+```
+
+### Hook names
+
 Hooks that predate the convention and cannot be renamed can be listed in your ruleset:
 
 ```xml
@@ -104,15 +124,19 @@ convention still runs. Promote it once your project is on the convention:
 ## Additional Notes
 
 - Append the `-s` flag to see the internal names of the rules.
-- Add `--runtime-set testVersion 5.2-` to check PHP version 5.2 or greater.
+- Add `--runtime-set testVersion 8.1-` to check against a different PHP version range.
 - Add a custom `phpcs.xml` file to your project to customize the ruleset or your desired configuration.
+
+The standard defaults to `testVersion` `7.4-` and `minimum_supported_wp_version` `6.6`,
+which are the floors in the [support matrix](https://newfold-labs.github.io/standards/platform/wordpress/support-matrix.html).
+Override them if your project targets something different, in either direction:
 
 ```xml
 <?xml version="1.0"?>
 <ruleset name="Project Rules">
     <rule ref="Newfold"/>
-    <config name="testVersion" value="7.0-"/>
-    <config name="minimum_supported_wp_version" value="5.8"/>
+    <config name="testVersion" value="8.1-"/>
+    <config name="minimum_supported_wp_version" value="6.7"/>
 </ruleset>
 ```
 

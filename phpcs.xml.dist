@@ -22,6 +22,14 @@
 	<exclude-pattern>tests/fixtures/*</exclude-pattern>
 
 	<!--
+		The PHPUnit bootstrap runs in the global namespace, and the constants it sets are
+		named by PHP_CodeSniffer rather than by us, so they cannot carry a company prefix.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>tests/bootstrap.php</exclude-pattern>
+	</rule>
+
+	<!--
 		Sniffs read properties off PHP_CodeSniffer and PHPCSUtils classes, which
 		name them in camelCase. They are third-party API and cannot be renamed, so
 		they are allowed by name rather than by switching the sniff off.

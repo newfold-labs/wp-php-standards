@@ -26,6 +26,16 @@ use ReflectionClass;
 abstract class SniffTestCase extends TestCase {
 
 	/**
+	 * The testVersion the tests run against unless one is passed.
+	 *
+	 * Matches the floor the shipped ruleset targets, so the suite exercises the
+	 * configuration consumers get rather than one that only exists in the tests.
+	 *
+	 * @var string
+	 */
+	const DEFAULT_TEST_VERSION = '7.4-';
+
+	/**
 	 * The sniff under test, in PHP_CodeSniffer dot notation.
 	 *
 	 * @var string
@@ -47,6 +57,17 @@ abstract class SniffTestCase extends TestCase {
 	protected $sniff_properties = array();
 
 	/**
+	 * Whether to run the whole standard rather than only the sniff under test.
+	 *
+	 * Set this when the behaviour under test depends on what Newfold/ruleset.xml
+	 * configures, since a restricted run never reads the ruleset. The report is
+	 * filtered to the sniff under test either way.
+	 *
+	 * @var bool
+	 */
+	protected $use_full_ruleset = false;
+
+	/**
 	 * Resets state that leaks between tests.
 	 *
 	 * @return void
@@ -66,7 +87,7 @@ abstract class SniffTestCase extends TestCase {
 	 *
 	 * @return array<int, array<int, string>> Error codes found, keyed by line number.
 	 */
-	protected function get_errors( $fixture, $test_version = '7.3-' ) {
+	protected function get_errors( $fixture, $test_version = self::DEFAULT_TEST_VERSION ) {
 		return $this->run_sniff( $fixture, $test_version, 'errors' );
 	}
 
@@ -78,7 +99,7 @@ abstract class SniffTestCase extends TestCase {
 	 *
 	 * @return array<int, array<int, string>> Warning codes found, keyed by line number.
 	 */
-	protected function get_warnings( $fixture, $test_version = '7.3-' ) {
+	protected function get_warnings( $fixture, $test_version = self::DEFAULT_TEST_VERSION ) {
 		return $this->run_sniff( $fixture, $test_version, 'warnings' );
 	}
 
@@ -94,7 +115,7 @@ abstract class SniffTestCase extends TestCase {
 	 *
 	 * @return void
 	 */
-	protected function assertErrorsOnLines( array $expected_lines, $fixture, $test_version = '7.3-' ) {
+	protected function assertErrorsOnLines( array $expected_lines, $fixture, $test_version = self::DEFAULT_TEST_VERSION ) {
 		$found = array_keys( $this->get_errors( $fixture, $test_version ) );
 		sort( $found );
 		sort( $expected_lines );
@@ -119,7 +140,7 @@ abstract class SniffTestCase extends TestCase {
 	 *
 	 * @return void
 	 */
-	protected function assertErrorCodes( array $expected, $fixture, $test_version = '7.3-' ) {
+	protected function assertErrorCodes( array $expected, $fixture, $test_version = self::DEFAULT_TEST_VERSION ) {
 		$this->assertSame(
 			$this->qualify( $expected ),
 			$this->get_errors( $fixture, $test_version ),
@@ -136,7 +157,7 @@ abstract class SniffTestCase extends TestCase {
 	 *
 	 * @return void
 	 */
-	protected function assertWarningCodes( array $expected, $fixture, $test_version = '7.3-' ) {
+	protected function assertWarningCodes( array $expected, $fixture, $test_version = self::DEFAULT_TEST_VERSION ) {
 		$this->assertSame(
 			$this->qualify( $expected ),
 			$this->get_warnings( $fixture, $test_version ),
@@ -183,7 +204,16 @@ abstract class SniffTestCase extends TestCase {
 
 		$config            = new Config( array(), false );
 		$config->standards = array( 'Newfold' );
-		$config->sniffs    = array( $this->sniff );
+
+		/*
+		 * Restricting the sniff list makes PHP_CodeSniffer register the sniff class
+		 * directly and skip the ruleset XML, so anything configured on a sniff in
+		 * Newfold/ruleset.xml never reaches it. A test covering that configuration has to
+		 * run the whole standard and filter the report instead.
+		 */
+		if ( false === $this->use_full_ruleset ) {
+			$config->sniffs = array( $this->sniff );
+		}
 
 		$ruleset = new Ruleset( $config );
 		$this->apply_sniff_properties( $ruleset );
@@ -192,11 +222,16 @@ abstract class SniffTestCase extends TestCase {
 		$file->process();
 
 		$violations = ( 'warnings' === $type ) ? $file->getWarnings() : $file->getErrors();
+		$prefix     = $this->sniff . '.';
 
 		$found = array();
 		foreach ( $violations as $line => $columns ) {
 			foreach ( $columns as $messages ) {
 				foreach ( $messages as $message ) {
+					if ( 0 !== strpos( $message['source'], $prefix ) ) {
+						continue;
+					}
+
 					$found[ $line ][] = $message['source'];
 				}
 			}
