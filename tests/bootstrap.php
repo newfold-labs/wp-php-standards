@@ -28,4 +28,25 @@ if ( ! defined( 'PHP_CODESNIFFER_VERBOSITY' ) ) {
 	define( 'PHP_CODESNIFFER_VERBOSITY', 0 );
 }
 
+/*
+ * Ruleset elements can carry phpcs-only and phpcbf-only attributes, and WordPress-Core
+ * uses both. PHP_CodeSniffer reads this constant when it meets one, so a ruleset built
+ * without restricting the sniff list fatals if it is missing. These tests always run in
+ * report mode, never in fixer mode.
+ */
+if ( ! defined( 'PHP_CODESNIFFER_CBF' ) ) {
+	define( 'PHP_CODESNIFFER_CBF', false );
+}
+
 new PHP_CodeSniffer\Util\Tokens();
+
+/*
+ * Standards installed through Composer are not registered with PHP_CodeSniffer's
+ * autoloader by Ruleset, only by Runner, which these tests do not go through. Our
+ * sniffs extend base classes that live in WordPressCS, and WordPressCS ships no
+ * Composer autoload configuration of its own, so without this they cannot be found.
+ * These are the same two lines Runner::init() runs.
+ */
+foreach ( PHP_CodeSniffer\Util\Standards::getInstalledStandardDetails() as $standard ) {
+	PHP_CodeSniffer\Autoload::addSearchPath( $standard['path'], $standard['namespace'] );
+}

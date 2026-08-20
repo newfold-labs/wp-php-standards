@@ -74,22 +74,54 @@ class ForbiddenUnionTypeSniffTest extends SniffTestCase {
 	}
 
 	/**
-	 * Property types and relative type names are missed today.
+	 * Property types, relative type names and DNF types report.
 	 *
-	 * Every declaration in this fixture is a PHP 8 union type that fatals on
-	 * PHP 7, but the sniff only visits pipes reachable from a parameter list or
-	 * a return type, and its list of type tokens has no entry for self, static
-	 * or parent. Property types, relative names and disjunctive normal form all
-	 * fall through.
+	 * Line 10 is a property type, 13 to 15 use self, static and parent in type
+	 * position, and 18 is a disjunctive normal form type. None of these were
+	 * reported before the sniff moved onto PHPCSUtils: it only visited pipes
+	 * reachable from a parameter list or a return type, and its list of type
+	 * tokens had no entry for the relative names.
 	 *
 	 * @return void
 	 */
-	public function test_property_and_relative_types_are_not_reported_yet() {
-		$this->assertSame(
-			array(),
-			$this->get_errors( 'union-type-relative-and-property.inc' ),
-			'A gap closed. Replace this with the lines that now report.'
+	public function test_reports_property_relative_and_dnf_types() {
+		$this->assertErrorsOnLines(
+			array( 10, 13, 14, 15, 18 ),
+			'union-type-relative-and-property.inc'
 		);
+	}
+
+	/**
+	 * A union on a typed class constant reports, and untyped constants do not.
+	 *
+	 * Typed class constants are PHP 8.3. Line 8 declares one with a union type.
+	 * The untyped class constant, the global const and the define() call have no
+	 * type declaration to check.
+	 *
+	 * @return void
+	 */
+	public function test_reports_union_on_typed_constant_only() {
+		$this->assertErrorsOnLines(
+			array( 8 ),
+			'union-type-constant.inc'
+		);
+	}
+
+	/**
+	 * A promoted constructor property reports once, not once per role.
+	 *
+	 * Constructor property promotion declares a parameter and a property from a
+	 * single piece of syntax, and the sniff visits both parameter lists and
+	 * property declarations. Counting the reports rather than only the lines is
+	 * the point of this test.
+	 *
+	 * @return void
+	 */
+	public function test_reports_promoted_constructor_property_once() {
+		$errors = $this->get_errors( 'union-type-promoted-property.inc' );
+
+		$this->assertSame( array( 9 ), array_keys( $errors ) );
+		$this->assertCount( 1, $errors[9], 'A promoted property must not be reported twice.' );
 	}
 
 	/**
@@ -98,9 +130,12 @@ class ForbiddenUnionTypeSniffTest extends SniffTestCase {
 	 * @return void
 	 */
 	public function test_skips_when_targeting_php_8() {
-		$this->assertSame(
-			array(),
-			$this->get_errors( 'union-type.inc', '8.0-' )
-		);
+		foreach ( array( 'union-type.inc', 'union-type-relative-and-property.inc', 'union-type-constant.inc' ) as $fixture ) {
+			$this->assertSame(
+				array(),
+				$this->get_errors( $fixture, '8.0-' ),
+				sprintf( '%s should be silent when targeting PHP 8.', $fixture )
+			);
+		}
 	}
 }

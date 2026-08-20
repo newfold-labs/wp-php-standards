@@ -1,36 +1,66 @@
 <?php
+/**
+ * Flags PHP 8 union type declarations when the target includes PHP 7.
+ *
+ * @package Newfold
+ */
 
 namespace Newfold\Sniffs\PHP;
 
+use Newfold\Sniffs\PHP\Helpers\PHPCompatibilityHelper;
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
-use Newfold\Sniffs\PHP\Helpers\PHPCompatibilityHelper;
+use PHPCSUtils\Utils\Constants;
+use PHPCSUtils\Utils\FunctionDeclarations;
+use PHPCSUtils\Utils\Scopes;
+use PHPCSUtils\Utils\TypeString;
+use PHPCSUtils\Utils\Variables;
 
 /**
- * Sniff to detect PHP 8.0 union type syntax (e.g. "array | \WP_Error") in type declarations.
+ * Sniff to detect PHP 8.0 union type syntax (e.g. "array|\WP_Error") in type declarations.
  *
- * Union types cause parse errors on PHP 7.x. Use docblocks for union types when targeting PHP 7.
+ * Union types are a parse error on PHP 7.x, so they take the whole file down rather
+ * than failing at the call site. Use docblocks for union types when targeting PHP 7,
+ * tagging functions with param and return, and properties and constants with var.
  */
 class ForbiddenUnionTypeSniff implements Sniff {
 
 	/**
+	 * Error message, with a placeholder for the offending type.
+	 *
+	 * @var string
+	 */
+	const MESSAGE = 'Union type declarations are not supported in PHP 7. Found: "%s". Use a docblock (@param, @return or @var) for union types when targeting PHP 7 compatibility.';
+
+	/**
+	 * Error code reported by this sniff.
+	 *
+	 * @var string
+	 */
+	const CODE = 'ForbiddenUnionType';
+
+	/**
 	 * Registers the tokens to listen for.
 	 *
-	 * T_BITWISE_OR: pipe in type context on PHP 7 (or when tokenizer doesn't distinguish).
-	 * T_TYPE_UNION: pipe in type context on PHP 8+ tokenizer.
+	 * Types can only appear on a function-like declaration, an OO property or,
+	 * since PHP 8.3, an OO constant. Listening for the declaration rather than
+	 * for the pipe character means the sniff never has to work out whether a
+	 * given pipe sits in a type or in a bitwise expression.
 	 *
 	 * @return array<int|string>
 	 */
 	public function register() {
-		$tokens = array( T_BITWISE_OR );
-		if ( defined( 'T_TYPE_UNION' ) ) {
-			$tokens[] = T_TYPE_UNION;
-		}
-		return $tokens;
+		return array(
+			T_FUNCTION,
+			T_CLOSURE,
+			T_FN,
+			T_VARIABLE,
+			T_CONST,
+		);
 	}
 
 	/**
-	 * Processes the token and checks for union type usage in type declarations.
+	 * Processes a declaration and reports any union type it declares.
 	 *
 	 * @param File $phpcs_file The file being scanned.
 	 * @param int  $stack_ptr  The position of the current token in the stack.
@@ -45,307 +75,113 @@ class ForbiddenUnionTypeSniff implements Sniff {
 
 		$tokens = $phpcs_file->getTokens();
 
-		$prev = $phpcs_file->findPrevious( T_WHITESPACE, $stack_ptr - 1, null, true );
-		$next = $phpcs_file->findNext( T_WHITESPACE, $stack_ptr + 1, null, true );
+		switch ( $tokens[ $stack_ptr ]['code'] ) {
+			case T_VARIABLE:
+				$this->process_property( $phpcs_file, $stack_ptr );
+				break;
 
-		if ( false === $prev || false === $next ) {
-			return;
+			case T_CONST:
+				$this->process_constant( $phpcs_file, $stack_ptr );
+				break;
+
+			default:
+				$this->process_function( $phpcs_file, $stack_ptr );
+				break;
+		}
+	}
+
+	/**
+	 * Checks the parameter types and return type of a function-like declaration.
+	 *
+	 * @param File $phpcs_file The file being scanned.
+	 * @param int  $stack_ptr  Position of the T_FUNCTION, T_CLOSURE or T_FN token.
+	 *
+	 * @return void
+	 */
+	private function process_function( File $phpcs_file, $stack_ptr ) {
+		$parameters = FunctionDeclarations::getParameters( $phpcs_file, $stack_ptr );
+
+		foreach ( $parameters as $parameter ) {
+			$this->report_if_union(
+				$phpcs_file,
+				$parameter['type_hint'],
+				$parameter['type_hint_token']
+			);
 		}
 
-		$valid_type_tokens = $this->get_valid_type_token_codes();
+		$properties = FunctionDeclarations::getProperties( $phpcs_file, $stack_ptr );
 
-		// Union type: "type | type". Left side must be a type (T_STRING, T_ARRAY, T_NAME_QUALIFIED, etc.), not e.g. T_VARIABLE.
-		if ( ! in_array( $tokens[ $prev ]['code'], $valid_type_tokens, true ) ) {
-			return;
-		}
-
-		// Right side: same set (T_STRING, T_NS_SEPARATOR, T_ARRAY, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED, etc.).
-		if ( ! in_array( $tokens[ $next ]['code'], $valid_type_tokens, true ) ) {
-			return;
-		}
-
-		// Confirm we're in a type declaration context (return type or parameter type),
-		// not in a bitwise expression like $a | $b.
-		if ( ! $this->is_in_type_declaration_context( $phpcs_file, $tokens, $prev ) ) {
-			return;
-		}
-
-		$phpcs_file->addError(
-			'Union type declarations (e.g. "array | \\WP_Error") are not supported in PHP 7. Use docblock @return or @param for union types when targeting PHP 7 compatibility.',
-			$stack_ptr,
-			'ForbiddenUnionType'
+		$this->report_if_union(
+			$phpcs_file,
+			$properties['return_type'],
+			$properties['return_type_token']
 		);
 	}
 
 	/**
-	 * Token codes that can appear as or within a type (either side of the union pipe).
-	 *
-	 * Includes built-in types (T_ARRAY, T_CALLABLE), PHP 8+ name tokens (T_NAME_QUALIFIED,
-	 * T_NAME_FULLY_QUALIFIED), and T_STRING / T_NS_SEPARATOR for classic tokenization.
-	 *
-	 * @return array<int|string>
-	 */
-	private function get_valid_type_token_codes() {
-		static $codes = null;
-		if ( null !== $codes ) {
-			return $codes;
-		}
-
-		$codes = array(
-			T_STRING,
-			T_NS_SEPARATOR,
-			T_ARRAY,
-			T_CALLABLE,
-			T_FALSE,
-			T_TRUE,
-			T_NULL,
-		);
-		if ( defined( 'T_NAME_QUALIFIED' ) ) {
-			$codes[] = T_NAME_QUALIFIED;
-		}
-		if ( defined( 'T_NAME_FULLY_QUALIFIED' ) ) {
-			$codes[] = T_NAME_FULLY_QUALIFIED;
-		}
-		return $codes;
-	}
-
-	/**
-	 * Check if the pipe at $stack_ptr is inside a type declaration (return or parameter type).
-	 *
-	 * Restricts to: ( and , only when they belong to a function/closure parameter list;
-	 * : only when it is the return-type colon after a function signature. Excludes
-	 * T_CATCH (e.g. multi-catch), bitwise in calls like foo(A | B), and ternary :.
+	 * Checks the declared type of an OO property.
 	 *
 	 * @param File $phpcs_file The file being scanned.
-	 * @param array<int, array<string, mixed>> $tokens   The token stack.
-	 * @param int $left_type_ptr Position of the last token of the left type (e.g. T_STRING, T_ARRAY, T_NAME_QUALIFIED).
-	 * @return bool True if in type declaration context.
+	 * @param int  $stack_ptr  Position of the T_VARIABLE token.
+	 *
+	 * @return void
 	 */
-	private function is_in_type_declaration_context( File $phpcs_file, array $tokens, $left_type_ptr ) {
-		$ptr = $left_type_ptr;
-
-		// Walk backward through the left type: (T_NS_SEPARATOR T_STRING)* or a single type token (T_ARRAY, T_NAME_QUALIFIED, etc.).
-		while ( $ptr > 0 ) {
-			$prev = $phpcs_file->findPrevious( T_WHITESPACE, $ptr - 1, null, true );
-			if ( false === $prev ) {
-				break;
-			}
-			if ( T_STRING === $tokens[ $prev ]['code'] || T_NS_SEPARATOR === $tokens[ $prev ]['code'] ) {
-				$ptr = $prev;
-				continue;
-			}
-			break;
+	private function process_property( File $phpcs_file, $stack_ptr ) {
+		// Most variables are not properties, and getMemberProperties() throws for
+		// anything that is not one.
+		if ( false === Scopes::isOOProperty( $phpcs_file, $stack_ptr ) ) {
+			return;
 		}
 
-		// Token immediately before the left type (skipping whitespace).
-		$before_type = $phpcs_file->findPrevious( T_WHITESPACE, $ptr - 1, null, true );
-		if ( false === $before_type ) {
-			return false;
-		}
+		$properties = Variables::getMemberProperties( $phpcs_file, $stack_ptr );
 
-		$code = $tokens[ $before_type ]['code'];
-
-		if ( T_OPEN_PARENTHESIS === $code ) {
-			return $this->is_function_or_closure_parameter_list( $tokens, $before_type );
-		}
-
-		if ( T_COMMA === $code ) {
-			$opener = $this->find_parameter_list_opener( $tokens, $before_type );
-			return false !== $opener && $this->is_function_or_closure_parameter_list( $tokens, $opener );
-		}
-
-		if ( T_COLON === $code ) {
-			return $this->is_return_type_colon( $phpcs_file, $tokens, $before_type );
-		}
-
-		return false;
+		$this->report_if_union( $phpcs_file, $properties['type'], $properties['type_token'] );
 	}
 
 	/**
-	 * Check if the given open parenthesis is the parameter list of a function or closure.
+	 * Checks the declared type of an OO constant.
 	 *
-	 * @param array<int, array<string, mixed>> $tokens Token stack.
-	 * @param int $open_paren_ptr Position of T_OPEN_PARENTHESIS.
-	 * @return bool True if the paren belongs to T_FUNCTION or T_CLOSURE; false for T_CATCH, calls, etc.
-	 */
-	private function is_function_or_closure_parameter_list( array $tokens, $open_paren_ptr ) {
-		$owner = $this->find_parenthesis_owner( $tokens, $open_paren_ptr );
-		if ( false === $owner ) {
-			return false;
-		}
-		$owner_code = $tokens[ $owner ]['code'];
-		if ( T_CATCH === $owner_code ) {
-			return false;
-		}
-		return T_FUNCTION === $owner_code || T_CLOSURE === $owner_code || T_FN === $owner_code;
-	}
-
-	/**
-	 * Find the token that owns the given opening parenthesis (e.g. T_FUNCTION, T_CATCH).
-	 *
-	 * Short-circuits when it hits a statement boundary (semicolon, open/close curly brace) to
-	 * avoid an unbounded linear scan on large files.
-	 *
-	 * @param array<int, array<string, mixed>> $tokens Token stack.
-	 * @param int $open_paren_ptr Position of T_OPEN_PARENTHESIS.
-	 * @return int|false Position of owner token, or false if not found.
-	 */
-	private function find_parenthesis_owner( array $tokens, $open_paren_ptr ) {
-		static $stop_tokens = null;
-		if ( null === $stop_tokens ) {
-			$stop_tokens = array(
-				T_SEMICOLON           => true,
-				T_OPEN_CURLY_BRACKET  => true,
-				T_CLOSE_CURLY_BRACKET => true,
-			);
-		}
-
-		for ( $ptr = $open_paren_ptr - 1; $ptr >= 0; $ptr-- ) {
-			if ( isset( $tokens[ $ptr ]['parenthesis_opener'] )
-				&& $tokens[ $ptr ]['parenthesis_opener'] === $open_paren_ptr ) {
-				return $ptr;
-			}
-			if ( isset( $stop_tokens[ $tokens[ $ptr ]['code'] ] ) ) {
-				break;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Find the opening parenthesis of the parameter list that contains the given comma.
-	 *
-	 * Handles both T_OPEN_PARENTHESIS and T_TYPE_OPEN_PARENTHESIS (PHP 8+ tokenizer).
-	 *
-	 * @param array<int, array<string, mixed>> $tokens Token stack.
-	 * @param int $comma_ptr Position of T_COMMA.
-	 * @return int|false Position of T_OPEN_PARENTHESIS or T_TYPE_OPEN_PARENTHESIS, or false.
-	 */
-	private function find_parameter_list_opener( array $tokens, $comma_ptr ) {
-		$type_close = defined( 'T_TYPE_CLOSE_PARENTHESIS' ) ? T_TYPE_CLOSE_PARENTHESIS : -1;
-		$type_open  = defined( 'T_TYPE_OPEN_PARENTHESIS' ) ? T_TYPE_OPEN_PARENTHESIS : -1;
-
-		$depth = 0;
-		for ( $ptr = $comma_ptr - 1; $ptr >= 0; $ptr-- ) {
-			$code = $tokens[ $ptr ]['code'];
-			if ( T_CLOSE_PARENTHESIS === $code || $type_close === $code ) {
-				$depth++;
-			} elseif ( T_OPEN_PARENTHESIS === $code || $type_open === $code ) {
-				if ( 0 === $depth ) {
-					return $ptr;
-				}
-				$depth--;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Check if the given colon is a return-type colon (after a function signature's closing paren).
+	 * Typed class constants are PHP 8.3, so a union on one cannot run on PHP 7
+	 * either way, but reporting it keeps the message consistent with the rest.
 	 *
 	 * @param File $phpcs_file The file being scanned.
-	 * @param array<int, array<string, mixed>> $tokens Token stack.
-	 * @param int $colon_ptr Position of T_COLON.
-	 * @return bool True if this is "function(...) : ReturnType".
+	 * @param int  $stack_ptr  Position of the T_CONST token.
+	 *
+	 * @return void
 	 */
-	private function is_return_type_colon( File $phpcs_file, array $tokens, $colon_ptr ) {
-		$before_colon = $phpcs_file->findPrevious( T_WHITESPACE, $colon_ptr - 1, null, true );
-		if ( false === $before_colon ) {
-			return false;
+	private function process_constant( File $phpcs_file, $stack_ptr ) {
+		// Global constants declared with const have no type, and getProperties()
+		// throws for anything that is not an OO constant.
+		if ( false === Scopes::isOOConstant( $phpcs_file, $stack_ptr ) ) {
+			return;
 		}
-		$code = $tokens[ $before_colon ]['code'];
-		// PHPCS converts ")" before return type to T_TYPE_CLOSE_PARENTHESIS in type context (PHP 8+).
-		$is_close_paren = ( T_CLOSE_PARENTHESIS === $code )
-			|| ( defined( 'T_TYPE_CLOSE_PARENTHESIS' ) && T_TYPE_CLOSE_PARENTHESIS === $code );
-		if ( ! $is_close_paren ) {
-			return false;
-		}
-		$close_paren = $before_colon;
-		$owner       = $this->find_parenthesis_owner_by_closer( $tokens, $close_paren );
-		if ( false !== $owner ) {
-			$owner_code = $tokens[ $owner ]['code'];
-			if ( T_FUNCTION === $owner_code || T_CLOSURE === $owner_code || T_FN === $owner_code ) {
-				return true;
-			}
-		}
-		// Fallback: find matching open paren by bracket count (handles T_TYPE_CLOSE_PARENTHESIS etc.),
-		// then look for T_FUNCTION, T_CLOSURE, or T_FN.
-		$open_paren = $this->find_matching_open_paren( $tokens, $close_paren );
-		if ( false === $open_paren ) {
-			return false;
-		}
-		for ( $ptr = $open_paren - 1; $ptr >= 0; $ptr-- ) {
-			if ( T_WHITESPACE === $tokens[ $ptr ]['code'] ) {
-				continue;
-			}
-			// Skip function/method name (T_STRING) so we reach T_FUNCTION, T_CLOSURE, or T_FN.
-			if ( T_STRING === $tokens[ $ptr ]['code'] ) {
-				continue;
-			}
-			$code = $tokens[ $ptr ]['code'];
-			return T_FUNCTION === $code || T_CLOSURE === $code || T_FN === $code;
-		}
-		return false;
+
+		$properties = Constants::getProperties( $phpcs_file, $stack_ptr );
+
+		$this->report_if_union( $phpcs_file, $properties['type'], $properties['type_token'] );
 	}
 
 	/**
-	 * Find the position of the opening parenthesis matching the closing paren at $close_ptr.
+	 * Reports an error when the given type string is a union type.
 	 *
-	 * Handles both T_CLOSE_PARENTHESIS and T_TYPE_CLOSE_PARENTHESIS (PHP 8+ tokenizer).
+	 * Disjunctive normal form types such as "(A&B)|null" are unions too, but
+	 * TypeString::isUnion() deliberately excludes them, so both are checked.
 	 *
-	 * @param array<int, array<string, mixed>> $tokens Token stack.
-	 * @param int $close_ptr Position of T_CLOSE_PARENTHESIS or T_TYPE_CLOSE_PARENTHESIS.
-	 * @return int|false Position of T_OPEN_PARENTHESIS or T_TYPE_OPEN_PARENTHESIS, or false.
+	 * @param File      $phpcs_file The file being scanned.
+	 * @param string    $type       The declared type, empty when none was declared.
+	 * @param int|false $type_token Position of the first token of the type, or false.
+	 *
+	 * @return void
 	 */
-	private function find_matching_open_paren( array $tokens, $close_ptr ) {
-		$type_close = defined( 'T_TYPE_CLOSE_PARENTHESIS' ) ? T_TYPE_CLOSE_PARENTHESIS : -1;
-		$type_open  = defined( 'T_TYPE_OPEN_PARENTHESIS' ) ? T_TYPE_OPEN_PARENTHESIS : -1;
-
-		$depth = 0;
-		for ( $ptr = $close_ptr - 1; $ptr >= 0; $ptr-- ) {
-			$code = $tokens[ $ptr ]['code'];
-			if ( T_CLOSE_PARENTHESIS === $code || $type_close === $code ) {
-				$depth++;
-			} elseif ( T_OPEN_PARENTHESIS === $code || $type_open === $code ) {
-				if ( 0 === $depth ) {
-					return $ptr;
-				}
-				$depth--;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Find the token that owns the given closing parenthesis (e.g. T_FUNCTION has parenthesis_closer).
-	 *
-	 * Short-circuits on statement boundaries to avoid an unbounded linear scan on large files.
-	 * The owner (e.g. T_FUNCTION) always appears before the matching open paren, so crossing a
-	 * curly brace or semicolon means we have gone too far.
-	 *
-	 * @param array<int, array<string, mixed>> $tokens Token stack.
-	 * @param int $close_paren_ptr Position of T_CLOSE_PARENTHESIS.
-	 * @return int|false Position of owner token, or false if not found.
-	 */
-	private function find_parenthesis_owner_by_closer( array $tokens, $close_paren_ptr ) {
-		static $stop_tokens = null;
-		if ( null === $stop_tokens ) {
-			$stop_tokens = array(
-				T_SEMICOLON           => true,
-				T_OPEN_CURLY_BRACKET  => true,
-				T_CLOSE_CURLY_BRACKET => true,
-			);
+	private function report_if_union( File $phpcs_file, $type, $type_token ) {
+		if ( '' === $type || false === $type_token ) {
+			return;
 		}
 
-		for ( $ptr = $close_paren_ptr - 1; $ptr >= 0; $ptr-- ) {
-			if ( isset( $tokens[ $ptr ]['parenthesis_closer'] )
-				&& $tokens[ $ptr ]['parenthesis_closer'] === $close_paren_ptr ) {
-				return $ptr;
-			}
-			if ( isset( $stop_tokens[ $tokens[ $ptr ]['code'] ] ) ) {
-				break;
-			}
+		if ( false === TypeString::isUnion( $type ) && false === TypeString::isDNF( $type ) ) {
+			return;
 		}
-		return false;
+
+		$phpcs_file->addError( self::MESSAGE, $type_token, self::CODE, array( $type ) );
 	}
 }
