@@ -1,2 +1,5 @@
 *.lock
 /vendor
+.phpunit.result.cache
+phpunit.xml
+phpcs.xml
